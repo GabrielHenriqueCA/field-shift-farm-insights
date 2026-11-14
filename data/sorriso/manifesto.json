@@ -1,0 +1,91 @@
+{
+  "projeto": "Rotare | Datanauts Brasil | NASA Space Apps Challenge 2026",
+  "gerado_em": "2026-11-14T16:01:45+00:00",
+  "ponto": {
+    "nome": "sorriso",
+    "lat": -12.6,
+    "lon": -55.95
+  },
+  "periodo": [
+    "2014-01-01",
+    "2025-12-31"
+  ],
+  "resultado": {
+    "oni": "cache (921 linhas)",
+    "sidra_pam": "ok, 214 linhas (1s)",
+    "chirps": "ok, 16436 linhas (44s)",
+    "chirps_safras": "ok, 46 linhas (44s)",
+    "power": "cache (4383 linhas)",
+    "imerg": "cache (141 linhas)",
+    "solo": "cache (40 linhas)",
+    "relevo": "cache (1 linhas)",
+    "mapbiomas": "cache (39 linhas)",
+    "ecocrop_parametros": "cache (18 linhas)",
+    "aptidao_ecocrop": "cache (216 linhas)",
+    "calendario_fao": "cache (114 linhas)",
+    "zarc": "cache (19767 linhas)",
+    "base_diaria": "ok, 4383 dias, 17 colunas"
+  },
+  "referencias": [
+    {
+      "fonte": "IBGE, Producao Agricola Municipal (PAM), tabela 1612 (SIDRA)",
+      "url": "https://sidra.ibge.gov.br/tabela/1612",
+      "licenca": "Dados publicos (IBGE)",
+      "citacao": "IBGE. Producao Agricola Municipal. Tabela 1612. https://sidra.ibge.gov.br/tabela/1612"
+    },
+    {
+      "fonte": "CHIRPS v2.0 daily precipitation (UCSB-CHG), via Google Earth Engine",
+      "url": "https://www.chc.ucsb.edu/data/chirps",
+      "licenca": "Dominio publico (CC0)",
+      "citacao": "Funk, C., et al. (2015). The climate hazards infrared precipitation with stations. Scientific Data, 2, 150066. https://doi.org/10.1038/sdata.2015.66"
+    },
+    {
+      "fonte": "MAPA, Zoneamento Agricola de Risco Climatico (ZARC), Tabua de Risco",
+      "url": "https://dados.agricultura.gov.br/dataset/tabua-de-risco-zoneamento-agricola-de-risco-climatico",
+      "licenca": "CC BY",
+      "citacao": "Brasil. Ministerio da Agricultura e Pecuaria. Zoneamento Agricola de Risco Climatico."
+    },
+    {
+      "fonte": "IBGE, API de localidades; OpenStreetMap Nominatim (identificacao do municipio)",
+      "url": "https://servicodados.ibge.gov.br/api/docs/localidades",
+      "licenca": "IBGE: dados publicos; OSM: ODbL",
+      "citacao": ""
+    },
+    {
+      "fonte": "MapBiomas Brasil, cobertura e uso da terra",
+      "url": "https://brasil.mapbiomas.org/",
+      "licenca": "CC BY 4.0",
+      "citacao": "Projeto MapBiomas. Colecao de mapas anuais de cobertura e uso da terra do Brasil."
+    },
+    {
+      "fonte": "NASA POWER (Prediction Of Worldwide Energy Resources), daily, AG community",
+      "url": "https://power.larc.nasa.gov/",
+      "licenca": "Uso livre, com agradecimento",
+      "citacao": "These data were obtained from the NASA Langley Research Center (LaRC) POWER Project funded through the NASA Earth Science/Applied Science Program."
+    },
+    {
+      "fonte": "NOAA CPC Oceanic Nino Index (ONI)",
+      "url": "https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/ensostuff/ONI_change.shtml",
+      "licenca": "Dominio publico (NOAA)",
+      "citacao": ""
+    },
+    {
+      "fonte": "ISRIC SoilGrids 2.0 (250 m)",
+      "url": "https://www.isric.org/explore/soilgrids",
+      "licenca": "CC BY 4.0",
+      "citacao": "Poggio, L., et al. (2021). SoilGrids 2.0. SOIL, 7, 217-240. https://doi.org/10.5194/soil-7-217-2021"
+    },
+    {
+      "fonte": "FAO ECOCROP (parametros das culturas), base em github.com/openclim/ecocrop",
+      "url": "https://ecocrop.apps.fao.org/ecocrop/srv/en/home",
+      "licenca": "FAO; recorte sob Open Government Licence v3",
+      "citacao": "FAO. ECOCROP database. Modelo de aptidao: Hijmans, R.J., et al. (2001). Plant Genetic Resources Newsletter 127: 1-5."
+    },
+    {
+      "fonte": "FAO Crop Calendar",
+      "url": "https://cropcalendar.apps.fao.org/",
+      "licenca": "FAO",
+      "citacao": ""
+    }
+  ]
+}
