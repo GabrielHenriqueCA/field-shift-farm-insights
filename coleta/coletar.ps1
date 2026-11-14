@@ -10,7 +10,8 @@ param(
   [string]$Nome = "sorriso",
   [string]$Inicio = "2014-01-01",
   [string]$Fim = "2025-12-31",
-  [string]$Fontes = "power,oni,solo,relevo,ecocrop,calendario_fao,zarc,sidra,chirps,imerg,mapbiomas,appeears,hls",
+  [string]$Fontes = "power,power_historico,oni,solo,relevo,ecocrop,calendario_fao,zarc,sidra,chirps,imerg_gee,modis,smap,uso_terra,mapbiomas",
+  [int]$InicioSafra = 0,
   [switch]$Refazer
 )
 Set-Location $PSScriptRoot
@@ -20,4 +21,7 @@ if (-not (Test-Path ".venv")) {
 }
 $env:PYTHONIOENCODING = "utf-8"
 $extra = @(); if ($Refazer) { $extra += "--refazer" }
-.\.venv\Scripts\python coleta_rotare.py --lat $Lat --lon $Lon --nome $Nome --inicio $Inicio --fim $Fim --saida ..\data --fontes $Fontes @extra
+.\.venv\Scripts\python coleta_rotare.py --lat $Lat --lon $Lon --nome $Nome --inicio $Inicio --fim $Fim --saida ..\data --fontes $Fontes --inicio-safra $InicioSafra @extra
+# CSVs para o time e banco DuckDB com todos os talhoes
+.\.venv\Scripts\python exportar_csv.py
+.\.venv\Scripts\python montar_banco.py

@@ -14,6 +14,7 @@ submission guide. The collection script also writes the data references of each 
 | SMAP L4 Global 3-hourly 9 km Surface and Root Zone Soil Moisture (SPL4SMGP) | https://nsidc.org/data/spl4smgp | Open (NASA NSIDC DAAC) | Reichle, R., et al. SMAP L4 Global 3-hourly 9 km EASE-Grid Surface and Root Zone Soil Moisture Geophysical Data. NSIDC DAAC. |
 | Harmonized Landsat Sentinel-2 (HLS) v2.0, HLSL30 and HLSS30 | https://hls.gsfc.nasa.gov/ | Open (NASA LP DAAC) | Masek, J., et al. HLS Operational Land Surface Reflectance and TOA Brightness Daily Global 30m v2.0. NASA EOSDIS LP DAAC. |
 | NASA SRTM 1 Arc-Second Global (30 m) | https://doi.org/10.5066/F7PR7TFT | Public domain (NASA/USGS) | NASA JPL. NASA Shuttle Radar Topography Mission Global 1 arc second. |
+| MODIS/Terra+Aqua Land Cover Type Yearly L3 Global 500m (MCD12Q1 v061) | https://doi.org/10.5067/MODIS/MCD12Q1.061 | Open (NASA LP DAAC) | Friedl, M., Sulla-Menashe, D. (2022). MCD12Q1 MODIS/Terra+Aqua Land Cover Type Yearly L3 Global 500m SIN Grid V061. |
 | AppEEARS (Application for Extracting and Exploring Analysis Ready Samples) | https://appeears.earthdatacloud.nasa.gov/ | Open (NASA LP DAAC) | AppEEARS Team. AppEEARS. NASA EOSDIS LP DAAC. |
 | NASA Earthdata Search and `earthaccess` | https://www.earthdata.nasa.gov/ | Open | |
 
@@ -38,7 +39,7 @@ submission guide. The collection script also writes the data references of each 
 | IBGE locality API | https://servicodados.ibge.gov.br/api/docs/localidades | Public data (IBGE) | |
 | OpenStreetMap Nominatim | https://nominatim.openstreetmap.org/ | ODbL 1.0 | Data © OpenStreetMap contributors. |
 | OpenTopodata (SRTM access) | https://www.opentopodata.org/ | MIT (service) | |
-| Google Earth Engine (MapBiomas access) | https://earthengine.google.com/ | Noncommercial use terms | Gorelick, N., et al. (2017). Google Earth Engine. Remote Sensing of Environment, 202, 18-27. |
+| Google Earth Engine (access to MODIS, SMAP, IMERG, CHIRPS and MapBiomas) | https://earthengine.google.com/ | Noncommercial use terms | Gorelick, N., et al. (2017). Google Earth Engine. Remote Sensing of Environment, 202, 18-27. |
 
 ## NASA Space Apps Challenge & Context Resources
 

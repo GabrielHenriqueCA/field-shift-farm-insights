@@ -1,10 +1,14 @@
 {
   "projeto": "Rotare | Datanauts Brasil | NASA Space Apps Challenge 2026",
-  "gerado_em": "2026-11-14T16:01:45+00:00",
+  "gerado_em": "2026-11-14T19:44:11+00:00",
   "ponto": {
     "nome": "sorriso",
     "lat": -12.6,
-    "lon": -55.95
+    "lon": -55.95,
+    "pais": "BR",
+    "pais_nome": "Brazil",
+    "local": "Sorriso, Mato Grosso",
+    "mes_inicio_safra": 7
   },
   "periodo": [
     "2014-01-01",
@@ -12,11 +16,9 @@
   ],
   "resultado": {
     "oni": "cache (921 linhas)",
-    "sidra_pam": "ok, 214 linhas (1s)",
-    "chirps": "ok, 16436 linhas (44s)",
-    "chirps_safras": "ok, 46 linhas (44s)",
     "power": "cache (4383 linhas)",
-    "imerg": "cache (141 linhas)",
+    "ndvi_modis": "cache (595 linhas)",
+    "smap_l4": "cache (3928 linhas)",
     "solo": "cache (40 linhas)",
     "relevo": "cache (1 linhas)",
     "mapbiomas": "cache (39 linhas)",
@@ -24,20 +26,36 @@
     "aptidao_ecocrop": "cache (216 linhas)",
     "calendario_fao": "cache (114 linhas)",
     "zarc": "cache (19767 linhas)",
-    "base_diaria": "ok, 4383 dias, 17 colunas"
+    "chirps": "cache (16436 linhas)",
+    "chirps_safras": "cache (46 linhas)",
+    "sidra_pam": "cache (214 linhas)",
+    "uso_terra_modis": "cache (25 linhas)",
+    "base_diaria": "ok, 4383 dias, 21 colunas"
   },
   "referencias": [
     {
-      "fonte": "IBGE, Producao Agricola Municipal (PAM), tabela 1612 (SIDRA)",
-      "url": "https://sidra.ibge.gov.br/tabela/1612",
-      "licenca": "Dados publicos (IBGE)",
-      "citacao": "IBGE. Producao Agricola Municipal. Tabela 1612. https://sidra.ibge.gov.br/tabela/1612"
+      "fonte": "SMAP L4 Global 3-hourly 9 km Surface and Root Zone Soil Moisture (SPL4SMGP v008), via Google Earth Engine",
+      "url": "https://nsidc.org/data/spl4smgp",
+      "licenca": "Uso livre (NASA NSIDC DAAC)",
+      "citacao": "Reichle, R., et al. SMAP L4 Global 3-hourly 9 km EASE-Grid Surface and Root Zone Soil Moisture. NSIDC DAAC."
     },
     {
-      "fonte": "CHIRPS v2.0 daily precipitation (UCSB-CHG), via Google Earth Engine",
-      "url": "https://www.chc.ucsb.edu/data/chirps",
-      "licenca": "Dominio publico (CC0)",
-      "citacao": "Funk, C., et al. (2015). The climate hazards infrared precipitation with stations. Scientific Data, 2, 150066. https://doi.org/10.1038/sdata.2015.66"
+      "fonte": "MODIS/Terra Vegetation Indices 16-Day L3 Global 250m (MOD13Q1 v061), via Google Earth Engine",
+      "url": "https://doi.org/10.5067/MODIS/MOD13Q1.061",
+      "licenca": "Uso livre (NASA EOSDIS)",
+      "citacao": "Didan, K. (2021). MOD13Q1 MODIS/Terra Vegetation Indices 16-Day L3 Global 250m SIN Grid V061."
+    },
+    {
+      "fonte": "MODIS/Terra+Aqua Land Cover Type Yearly L3 Global 500m (MCD12Q1 v061), via Google Earth Engine",
+      "url": "https://doi.org/10.5067/MODIS/MCD12Q1.061",
+      "licenca": "Uso livre (NASA EOSDIS)",
+      "citacao": "Friedl, M., Sulla-Menashe, D. (2022). MCD12Q1 MODIS/Terra+Aqua Land Cover Type Yearly L3 Global 500m SIN Grid V061."
+    },
+    {
+      "fonte": "NASA POWER (Prediction Of Worldwide Energy Resources), daily, AG community",
+      "url": "https://power.larc.nasa.gov/",
+      "licenca": "Uso livre, com agradecimento",
+      "citacao": "These data were obtained from the NASA Langley Research Center (LaRC) POWER Project funded through the NASA Earth Science/Applied Science Program."
     },
     {
       "fonte": "MAPA, Zoneamento Agricola de Risco Climatico (ZARC), Tabua de Risco",
@@ -52,16 +70,22 @@
       "citacao": ""
     },
     {
+      "fonte": "IBGE, Producao Agricola Municipal (PAM), tabela 1612 (SIDRA)",
+      "url": "https://sidra.ibge.gov.br/tabela/1612",
+      "licenca": "Dados publicos (IBGE)",
+      "citacao": "IBGE. Producao Agricola Municipal. Tabela 1612. https://sidra.ibge.gov.br/tabela/1612"
+    },
+    {
+      "fonte": "CHIRPS v2.0 daily precipitation (UCSB-CHG), via Google Earth Engine",
+      "url": "https://www.chc.ucsb.edu/data/chirps",
+      "licenca": "Dominio publico (CC0)",
+      "citacao": "Funk, C., et al. (2015). The climate hazards infrared precipitation with stations. Scientific Data, 2, 150066. https://doi.org/10.1038/sdata.2015.66"
+    },
+    {
       "fonte": "MapBiomas Brasil, cobertura e uso da terra",
       "url": "https://brasil.mapbiomas.org/",
       "licenca": "CC BY 4.0",
       "citacao": "Projeto MapBiomas. Colecao de mapas anuais de cobertura e uso da terra do Brasil."
-    },
-    {
-      "fonte": "NASA POWER (Prediction Of Worldwide Energy Resources), daily, AG community",
-      "url": "https://power.larc.nasa.gov/",
-      "licenca": "Uso livre, com agradecimento",
-      "citacao": "These data were obtained from the NASA Langley Research Center (LaRC) POWER Project funded through the NASA Earth Science/Applied Science Program."
     },
     {
       "fonte": "NOAA CPC Oceanic Nino Index (ONI)",

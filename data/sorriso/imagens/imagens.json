@@ -1,0 +1,210 @@
+{
+  "talhao": "sorriso",
+  "lat": -12.6,
+  "lon": -55.95,
+  "raio_m": 2000,
+  "fonte": "NASA HLS v2.0 (HLSL30 + HLSS30), mediana das cenas sem nuvem, via Google Earth Engine",
+  "referencia": "Masek, J., et al. HLS Operational Land Surface Reflectance V2.0. NASA EOSDIS LP DAAC.",
+  "imagens": [
+    {
+      "safra": "2015/16",
+      "ano": 2015,
+      "fase": "soja",
+      "inicio": "2015-12-01",
+      "fim": "2016-02-28",
+      "cenas": 9,
+      "arquivo": "2015_soja.png",
+      "ndvi_medio": 0.537
+    },
+    {
+      "safra": "2015/16",
+      "ano": 2015,
+      "fase": "safrinha",
+      "inicio": "2016-04-01",
+      "fim": "2016-06-30",
+      "cenas": 163,
+      "arquivo": "2015_safrinha.png",
+      "ndvi_medio": 0.567
+    },
+    {
+      "safra": "2016/17",
+      "ano": 2016,
+      "fase": "soja",
+      "inicio": "2016-12-01",
+      "fim": "2017-02-28",
+      "cenas": 65,
+      "arquivo": "2016_soja.png",
+      "ndvi_medio": 0.806
+    },
+    {
+      "safra": "2016/17",
+      "ano": 2016,
+      "fase": "safrinha",
+      "inicio": "2017-04-01",
+      "fim": "2017-06-30",
+      "cenas": 148,
+      "arquivo": "2016_safrinha.png",
+      "ndvi_medio": 0.619
+    },
+    {
+      "safra": "2017/18",
+      "ano": 2017,
+      "fase": "soja",
+      "inicio": "2017-12-01",
+      "fim": "2018-02-28",
+      "cenas": 141,
+      "arquivo": "2017_soja.png",
+      "ndvi_medio": 0.736
+    },
+    {
+      "safra": "2017/18",
+      "ano": 2017,
+      "fase": "safrinha",
+      "inicio": "2018-04-01",
+      "fim": "2018-06-30",
+      "cenas": 512,
+      "arquivo": "2017_safrinha.png",
+      "ndvi_medio": 0.778
+    },
+    {
+      "safra": "2018/19",
+      "ano": 2018,
+      "fase": "soja",
+      "inicio": "2018-12-01",
+      "fim": "2019-02-28",
+      "cenas": 151,
+      "arquivo": "2018_soja.png",
+      "ndvi_medio": 0.622
+    },
+    {
+      "safra": "2018/19",
+      "ano": 2018,
+      "fase": "safrinha",
+      "inicio": "2019-04-01",
+      "fim": "2019-06-30",
+      "cenas": 587,
+      "arquivo": "2018_safrinha.png",
+      "ndvi_medio": 0.5
+    },
+    {
+      "safra": "2019/20",
+      "ano": 2019,
+      "fase": "soja",
+      "inicio": "2019-12-01",
+      "fim": "2020-02-28",
+      "cenas": 156,
+      "arquivo": "2019_soja.png",
+      "ndvi_medio": 0.606
+    },
+    {
+      "safra": "2019/20",
+      "ano": 2019,
+      "fase": "safrinha",
+      "inicio": "2020-04-01",
+      "fim": "2020-06-30",
+      "cenas": 509,
+      "arquivo": "2019_safrinha.png",
+      "ndvi_medio": 0.613
+    },
+    {
+      "safra": "2020/21",
+      "ano": 2020,
+      "fase": "soja",
+      "inicio": "2020-12-01",
+      "fim": "2021-02-28",
+      "cenas": 18,
+      "arquivo": "2020_soja.png",
+      "ndvi_medio": 0.827
+    },
+    {
+      "safra": "2020/21",
+      "ano": 2020,
+      "fase": "safrinha",
+      "inicio": "2021-04-01",
+      "fim": "2021-06-30",
+      "cenas": 24,
+      "arquivo": "2020_safrinha.png",
+      "ndvi_medio": 0.679
+    },
+    {
+      "safra": "2021/22",
+      "ano": 2021,
+      "fase": "soja",
+      "inicio": "2021-12-01",
+      "fim": "2022-02-28",
+      "cenas": 19,
+      "arquivo": "2021_soja.png",
+      "ndvi_medio": 0.581
+    },
+    {
+      "safra": "2021/22",
+      "ano": 2021,
+      "fase": "safrinha",
+      "inicio": "2022-04-01",
+      "fim": "2022-06-30",
+      "cenas": 313,
+      "arquivo": "2021_safrinha.png",
+      "ndvi_medio": 0.653
+    },
+    {
+      "safra": "2022/23",
+      "ano": 2022,
+      "fase": "soja",
+      "inicio": "2022-12-01",
+      "fim": "2023-02-28",
+      "cenas": 179,
+      "arquivo": "2022_soja.png",
+      "ndvi_medio": 0.734
+    },
+    {
+      "safra": "2022/23",
+      "ano": 2022,
+      "fase": "safrinha",
+      "inicio": "2023-04-01",
+      "fim": "2023-06-30",
+      "cenas": 547,
+      "arquivo": "2022_safrinha.png",
+      "ndvi_medio": 0.734
+    },
+    {
+      "safra": "2023/24",
+      "ano": 2023,
+      "fase": "soja",
+      "inicio": "2023-12-01",
+      "fim": "2024-02-28",
+      "cenas": 215,
+      "arquivo": "2023_soja.png",
+      "ndvi_medio": 0.799
+    },
+    {
+      "safra": "2023/24",
+      "ano": 2023,
+      "fase": "safrinha",
+      "inicio": "2024-04-01",
+      "fim": "2024-06-30",
+      "cenas": 558,
+      "arquivo": "2023_safrinha.png",
+      "ndvi_medio": 0.555
+    },
+    {
+      "safra": "2024/25",
+      "ano": 2024,
+      "fase": "soja",
+      "inicio": "2024-12-01",
+      "fim": "2025-02-28",
+      "cenas": 207,
+      "arquivo": "2024_soja.png",
+      "ndvi_medio": 0.648
+    },
+    {
+      "safra": "2024/25",
+      "ano": 2024,
+      "fase": "safrinha",
+      "inicio": "2025-04-01",
+      "fim": "2025-06-30",
+      "cenas": 384,
+      "arquivo": "2024_safrinha.png",
+      "ndvi_medio": 0.69
+    }
+  ]
+}

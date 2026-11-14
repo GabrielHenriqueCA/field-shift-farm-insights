@@ -8,11 +8,13 @@
 
 [![Platform](https://img.shields.io/badge/Brazil-Monitoring-12141F?logo=satellite&logoColor=4C8DF6)](#)
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11+-4C8DF6?logo=python&logoColor=white)](https://www.python.org/)
+[![JavaScript](https://img.shields.io/badge/Engine-JavaScript-E9C46A?logo=javascript&logoColor=white)](#-architecture--data-flow)
 [![License: MIT](https://img.shields.io/badge/License-MIT-3DBE7A)](LICENSE)
 [![NASA Space Apps 2026](https://img.shields.io/badge/NASA%20Space%20Apps-2026-E9C46A)](https://www.spaceappschallenge.org/)
 [![Data Sources](https://img.shields.io/badge/Open%20Data-13%20Sources-E76F51)](#-nasa--satellite-data)
+[![Tests](https://img.shields.io/badge/Tests-18%20Passing-3DBE7A)](#-getting-started)
 
-**A decision-support tool that monitors Brazilian agricultural fields and helps farmers compare three-year crop rotations using NASA satellite data.**
+**A decision-support tool that helps farmers compare three-year crop rotations using NASA satellite data, a deterministic FAO-based engine, and an interactive satellite map.**
 
 *Built by **Datanauts Brasil** (São Paulo) for the NASA Space Apps Challenge 2026*  
 *Challenge: Field Shift — Adapting Farms with NASA Data*
@@ -76,22 +78,26 @@ Designed in accordance with the project dossier, each color serves a direct sema
 
 ## ✨ Key Features
 
-- 🛰️ **Satellite-based crop history detection** — 10-year NDVI/EVI series from MODIS and HLS to identify past crop cycles and bare-soil periods
-- 🌧️ **Climate risk simulation** *(in development)* — daily water balance using NASA POWER weather, with rainfall from GPM IMERG and CHIRPS shown as a range across sources
-- 🌍 **ENSO-aware analysis** — classifies each crop year as El Niño, La Niña or neutral using NOAA's Oceanic Niño Index
-- 🧪 **Soil characterization** — clay, organic carbon, pH and texture from ISRIC SoilGrids 2.0 (250 m), with erosion risk from SRTM elevation
-- 📊 **Multi-criteria ranking** — Pareto-front scoring of three-year rotation sequences weighted by farmer priorities
-- 🔄 **Fully reproducible** — one command collects all 13 open sources for any coordinate; the app reads only the bundled Parquet files, so no API is called during the demo
+- 🛰️ **Satellite-based crop history detection** — 10-year NDVI/EVI series from MODIS and HLS to identify past crop cycles and bare-soil periods, validated against MapBiomas ground-truth
+- 🌧️ **Climate risk simulation** — FAO-56 daily water balance (Hargreaves ET₀ × crop Kc) with rainfall from CHIRPS, GPM IMERG and NASA POWER, shown as a range across sources
+- 🌍 **ENSO-aware analysis** — classifies each crop year as El Niño, La Niña or neutral using NOAA's Oceanic Niño Index; "What-if El Niño" mode runs historical analogs
+- 🧪 **Soil characterization** — clay, organic carbon, pH and texture from ISRIC SoilGrids 2.0 (250 m), plant-available water via Saxton & Rawls (2006), erosion risk from SRTM elevation
+- 📊 **Multi-criteria ranking** — Pareto-front scoring of three-year rotation sequences across soil health, climate risk, water balance and relative return, weighted by farmer priorities
+- 🗺️ **Interactive satellite map** — MapLibre globe with Esri imagery, NASA GIBS HLS layers, polygon editor (draw, edit, drag vertices), and analysis overlays (NDVI, slope, risk zones)
+- 🔄 **Fully reproducible** — one command collects all 13 open sources for any coordinate; the app reads only the bundled data, so no API is called during the demo
+- 🧪 **18 deterministic tests** — engine, geodesy, ranking, explainability and data integrity validated by automated tests (`node --test`)
 
 ---
 
 ## 🖥️ Platform Interface
 
+**Journey:** Coordinate → Farm on satellite → Draw the field → X-Ray analysis → Set priorities → 3-year rotations → Climate simulator → Smart map.
+
 <div align="center">
   <img src="assets/img/rotare-dashboard-preview.jpg" alt="Rotare Decision Support Platform Interface" width="100%" style="border-radius: 12px; margin: 15px 0; border: 1px solid rgba(76, 141, 246, 0.2);" />
 </div>
 
-*Concept mockup generated with AI to illustrate the planned interface (watermarked). It is **not** the working app and its numbers are **not** real data. It will be replaced by screenshots of the real app.*
+*Concept mockup generated with AI to illustrate the interface design (watermarked). The working app runs at `http://127.0.0.1:8765` — see [Getting Started](#-getting-started).*
 
 ---
 
@@ -103,7 +109,7 @@ flowchart LR
         direction TB
         P["NASA POWER API<br/>(Weather & Solar)"]
         G["GPM IMERG (GES DISC)<br/>(Precipitation)"]
-        M["MODIS & HLS (AppEEARS)<br/>(10-Yr NDVI / EVI)"]
+        M["MODIS MOD13Q1 & MCD12Q1<br/>(NDVI since 2000, land cover)"]
         S["SMAP L4 (NSIDC)<br/>(Soil Moisture)"]
         SG["ISRIC SoilGrids API<br/>(Texture & Carbon)"]
     end
@@ -116,23 +122,25 @@ flowchart LR
     subgraph STORAGE["💾 Git-Bundled Datasets (data/)"]
         direction TB
         PARQ[("Local Storage<br/>Parquet & CSV<br/>★ Immediate Judge Validation")]
+        DB[("DuckDB<br/>rotare.duckdb<br/>dimensions · facts · views")]
     end
 
-    subgraph ENGINE["🧠 Decision Engine (motor/)"]
+    subgraph ENGINE["🧠 Decision Engine (app/js/motor/)"]
         direction TB
         CH["1. Crop History (NDVI Peaks)"]
-        WB["2. Water Balance (ET₀ × Kc)"]
+        WB["2. Water Balance (FAO-56 ET₀ × Kc)"]
         SI["3. Relative Soil Conditioning"]
         RK["4. Pareto Multi-Criteria Ranking"]
     end
 
     subgraph UI["💻 Web Application (app/)"]
-        APP["Streamlit Dashboard<br/>3-Year Rotation Matrix"]
+        APP["Static SPA<br/>MapLibre Globe · Turf.js<br/>No backend · No API key"]
     end
 
     SATS -->|Live Ingestion| COL
     COL -->|Saves to| PARQ
-    PARQ -->|Zero-Setup Offline Read| ENGINE
+    PARQ -->|montar_banco.py| DB
+    DB -->|Zero-Setup Offline SQL| ENGINE
     ENGINE --> UI
 ```
 
@@ -148,13 +156,26 @@ rotare/
 ├── coleta/          # Data collection pipeline (13 open sources, single command)
 │   ├── coleta_rotare.py    # Main API ingestion script
 │   ├── coletar.ps1         # Windows PowerShell launcher (auto venv setup)
-│   ├── ecocrop_culturas.csv
-│   ├── exportar_csv.py     # Exports Parquet to CSV for easy inspection
+│   ├── preparar_app.py     # Exports regional grids and field data for the app
+│   ├── montar_banco.py     # Builds the DuckDB analytical database from the Parquet files
+│   ├── BANCO.md            # Database model, tables and example queries
 │   └── requirements.txt
 ├── data/            # Pre-collected field datasets for immediate evaluation
-│   └── sorriso/            # Validated benchmark dataset (Parquet + CSV + metadata)
-├── motor/           # Decision engine (crop history, water balance, ranking)
-├── app/             # Web interface (Streamlit dashboard)
+│   ├── rotare.duckdb       # Analytical database (all fields, rebuilt from the Parquet files)
+│   ├── sorriso/            # Validated benchmark dataset (Parquet + CSV + metadata)
+│   ├── pergamino/          # Pergamino, Argentina (global demo)
+│   ├── iowa/               # Iowa, United States (global demo)
+│   ├── punjab/             # Punjab, India (global demo)
+│   └── eldoret/            # Eldoret, Kenya (global demo)
+├── motor/           # Decision engine Python interface (banco.py)
+├── app/             # Static web application (no backend, no API key)
+│   ├── index.html          # Single-page entry point
+│   ├── css/rotare.css      # Dossier palette UI
+│   ├── js/motor/           # Deterministic engine: catalogo, balanco, rotacao, historico
+│   ├── js/geo/             # Geoprocessing: polygon editor, zonal stats
+│   ├── js/                 # Map, explainability, icons, main app
+│   ├── data/               # Pre-processed JS data (clima, regiao, talhoes) + field images
+│   └── tests/              # 18 automated engine tests (node --test)
 ├── REFERENCES.md    # Exhaustive citations, licenses, and challenge guidelines
 └── LICENSE          # MIT
 ```
@@ -166,9 +187,10 @@ rotare/
 | Component | Directory | Status | Notes |
 |:---|:---|:---:|:---|
 | Data collection pipeline (13 sources) | [`coleta/`](coleta/) | ✅ Working | Automated API fetching, token management & resumption |
-| Pre-collected validation datasets | [`data/`](data/) | ✅ Bundled | Ready for instant offline evaluation (Parquet + CSV) |
-| Decision engine (crop history, water balance, soil index) | [`motor/`](motor/) | 🔧 In progress | Deterministic algorithms, Pareto frontier optimization |
-| Web application | [`app/`](app/) | 🔧 In progress | Streamlit interactive rotation comparison dashboard |
+| Pre-collected validation datasets | [`data/`](data/) | ✅ Bundled | 5 fields across 5 countries, ready for instant offline evaluation (Parquet + CSV) |
+| Analytical database (DuckDB) | [`data/rotare.duckdb`](data/) | ✅ Built | Star-style model with dimensions, facts and ready-made views for the engine and app |
+| Decision engine (FAO-56/FAO-33 water balance, ranking) | [`app/js/motor/`](app/js/motor/) | ✅ Working | Deterministic algorithms, Pareto frontier optimization, 18 automated tests |
+| Web application (static SPA) | [`app/`](app/) | ✅ Working | MapLibre globe, polygon editor, crop history inference, climate simulator, rotation ranking |
 
 ---
 
@@ -180,9 +202,10 @@ rotare/
 |:---|:---|:---|
 | **NASA POWER** (daily, AG community) | Temperature, humidity and radiation for reference ET₀ (Hargreaves), frost and heat days | POWER REST API |
 | **GPM IMERG Final V07** (monthly) | Satellite rainfall; corrects reanalysis bias and compares El Niño years | NASA GES DISC via `earthaccess` |
-| **MODIS MOD13Q1 v061** (NDVI/EVI, 250 m, 16-day) | 10-year vegetation series to detect past crop cycles and bare-soil periods | NASA LP DAAC via AppEEARS API |
-| **SMAP L4 SPL4SMGP** (surface + root-zone soil moisture) | Validates simulated water balance | NASA NSIDC DAAC via AppEEARS API |
-| **HLS v2.0** (Landsat 8/9 + Sentinel-2, 30 m) | Field-scale NDVI with Fmask cloud/shadow/water masking | NASA LP DAAC via AppEEARS API |
+| **MODIS MOD13Q1 v061** (NDVI/EVI, 250 m, 16-day) | Vegetation series since 2000 to detect past crop cycles and bare-soil periods | NASA LP DAAC, via Google Earth Engine (AppEEARS as fallback) |
+| **MODIS MCD12Q1 v061** (IGBP land cover, 500 m, yearly) | Confirms the point is cropland in every country (MapBiomas adds detail in Brazil) | NASA LP DAAC, via Google Earth Engine |
+| **SMAP L4 SPL4SMGP v008** (surface + root-zone soil moisture) | Validates simulated water balance (daily, since April 2015) | NASA NSIDC DAAC, via Google Earth Engine |
+| **HLS v2.0** (Landsat 8/9 + Sentinel-2, 30 m) | Optional field-scale NDVI with Fmask cloud masking | NASA LP DAAC via AppEEARS API |
 | **SRTM 1 arc-second** (30 m) | Elevation and slope (Horn method) for erosion risk | OpenTopodata API |
 
 ### Partner & Other Open Data
@@ -273,12 +296,55 @@ cp .env.exemplo .env            # Fill in credentials
 python coleta_rotare.py --lat -17.79 --lon -50.92 --nome rio_verde --saida ../data
 ```
 
+### Option C: Run Web Application Locally or Deploy to Vercel
+
+The web application is a static Single Page Application (HTML5, CSS3, JavaScript, MapLibre GL, Turf.js) with zero backend dependencies:
+
+```bash
+# Run locally (any static HTTP server)
+cd app
+python -m http.server 8765
+# Open in your browser: http://127.0.0.1:8765
+```
+
+**Deploy to Vercel (zero-config):**
+- Import this GitHub repository directly into [Vercel](https://vercel.com).
+- The included [`vercel.json`](vercel.json) automatically serves the application from `app/` with clean URLs and instant global CDN delivery.
+
+### Option D: Run Engine Automated Tests
+
+Validate the deterministic agronomic engine, FAO-56 water balance, and multi-criteria ranking:
+```bash
+node --test app/tests/motor.test.cjs
+```
+
 ### Pipeline Architecture Highlights
 
 - **Incremental caching** — skips sources already downloaded for the same point and time range (`--refazer` forces a fresh download)
-- **Resilient task resumption** — automatically polls and resumes asynchronous AppEEARS tasks
+- **Global by design** — any coordinate: NASA satellite data comes through Google Earth Engine in seconds; Brazil-only sources (ZARC, IBGE, MapBiomas) are added automatically when the point is in Brazil
 - **Non-blocking fallback** — if an upstream API encounters downtime, the remaining sources continue and a detailed summary highlights what is missing
 - **Zero API calls during demo** — the user-facing web app operates on local Parquet files for instant, offline performance
+
+---
+
+## 🗄️ Analytical Database (DuckDB)
+
+All collected data is loaded into a single-file [DuckDB](https://duckdb.org/) database, [`data/rotare.duckdb`](data/), rebuilt from the Parquet files by `coleta/montar_banco.py` (idempotent, no server needed). The engine and the app query it with plain SQL.
+
+| Layer | Tables | Grain |
+|:---|:---|:---|
+| Dimensions | `dim_talhao`, `dim_cultura`, `dim_fonte`, `dim_enso_safra` | One field / crop / data source / crop year |
+| Facts | `fato_clima_diario` (1981–2025), `fato_chuva_imerg_mensal`, `fato_solo_camada`, `fato_solo_agua`, `fato_uso_terra`, `fato_producao_municipal`, `fato_zarc_risco`, `fato_zarc_janela`, `fato_aptidao_ecocrop` | Day, month, soil layer, year, 10-day period |
+| References | `ref_ecocrop`, `ref_calendario_fao` | Crop parameters |
+| Views | `vw_safra`, `vw_raio_x`, `vw_solo_0_30`, `vw_zarc_janela_atual` | Ready for the engine and the app screens |
+
+```python
+import duckdb
+con = duckdb.connect("data/rotare.duckdb", read_only=True)
+con.sql("SELECT ano_safra, chuva_chirps_mm, deficit_chirps_mm, enso_safra, soja_municipio_sc_ha FROM vw_safra").df()
+```
+
+Derived values are documented in [`coleta/BANCO.md`](coleta/BANCO.md): crop-year keys, 0–30 cm soil averages and plant-available water estimated with Saxton & Rawls (2006). Every table and view carries a description (`SELECT * FROM duckdb_tables()`).
 
 ---
 
@@ -288,7 +354,7 @@ Each field directory under `data/<field>/` contains standardized, ready-to-use a
 
 | File | Description | Format |
 |:---|:---|:---:|
-| `base_diaria.parquet` / `.csv` | Daily series: weather, Hargreaves ET₀, frost (≤ 2 °C), heat (≥ 35 °C), extreme rain (≥ 50 mm), CHIRPS rainfall, crop year, ENSO phase. NDVI and soil moisture columns are added when the AppEEARS request completes | Parquet / CSV |
+| `base_diaria.parquet` / `.csv` | Daily series: weather, Hargreaves ET₀, frost (≤ 2 °C), heat (≥ 35 °C), extreme rain (≥ 50 mm), CHIRPS rainfall, crop year, ENSO phase. NDVI (MODIS) and root-zone soil moisture (SMAP) columns | Parquet / CSV |
 | `resumo_safras.parquet` / `.csv` | Annual crop-year summary (Jul–Jun): rainfall (POWER, IMERG, CHIRPS), ET₀, water deficit, extreme temperature days, ENSO classification | Parquet / CSV |
 | `zarc.parquet` / `.csv` | Official Brazilian agro-climatic planting risk (20/30/40 %) per crop, cycle, soil class, and 10-day period | Parquet / CSV |
 | `aptidao_ecocrop.parquet` / `.csv` | Indicative climate suitability index (0–1) across 18 crops per planting month | Parquet / CSV |

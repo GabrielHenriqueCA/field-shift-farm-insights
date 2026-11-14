@@ -14,5 +14,10 @@ __pycache__/
 # collection state (local only)
 data/*/cache.json
 data/*/appeears_tarefa*.json
+app/data/cache/
 coleta/coleta_log.txt
 coleta/*.antes_*.py
+
+# DuckDB: o banco vai para o repo; arquivos temporarios nao
+data/*.tmp.duckdb
+data/*.duckdb.wal

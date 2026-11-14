@@ -1,0 +1,101 @@
+{
+  "projeto": "Rotare | Datanauts Brasil | NASA Space Apps Challenge 2026",
+  "gerado_em": "2026-11-14T19:44:12+00:00",
+  "ponto": {
+    "nome": "pergamino",
+    "lat": -33.95,
+    "lon": -60.65,
+    "pais": "AR",
+    "pais_nome": "Argentina",
+    "local": "Partido de Pergamino, Buenos Aires",
+    "mes_inicio_safra": 7
+  },
+  "periodo": [
+    "2014-01-01",
+    "2025-12-31"
+  ],
+  "resultado": {
+    "oni": "cache (921 linhas)",
+    "power": "cache (4383 linhas)",
+    "ndvi_modis": "cache (595 linhas)",
+    "smap_l4": "cache (3928 linhas)",
+    "imerg": "cache (141 linhas)",
+    "solo": "cache (40 linhas)",
+    "relevo": "cache (1 linhas)",
+    "ecocrop_parametros": "cache (18 linhas)",
+    "aptidao_ecocrop": "cache (216 linhas)",
+    "calendario_fao": "cache (125 linhas)",
+    "chirps": "cache (16436 linhas)",
+    "chirps_safras": "cache (46 linhas)",
+    "uso_terra_modis": "cache (25 linhas)",
+    "base_diaria": "ok, 4383 dias, 21 colunas"
+  },
+  "referencias": [
+    {
+      "fonte": "SMAP L4 Global 3-hourly 9 km Surface and Root Zone Soil Moisture (SPL4SMGP v008), via Google Earth Engine",
+      "url": "https://nsidc.org/data/spl4smgp",
+      "licenca": "Uso livre (NASA NSIDC DAAC)",
+      "citacao": "Reichle, R., et al. SMAP L4 Global 3-hourly 9 km EASE-Grid Surface and Root Zone Soil Moisture. NSIDC DAAC."
+    },
+    {
+      "fonte": "NASA POWER (Prediction Of Worldwide Energy Resources), daily, AG community",
+      "url": "https://power.larc.nasa.gov/",
+      "licenca": "Uso livre, com agradecimento",
+      "citacao": "These data were obtained from the NASA Langley Research Center (LaRC) POWER Project funded through the NASA Earth Science/Applied Science Program."
+    },
+    {
+      "fonte": "NOAA CPC Oceanic Nino Index (ONI)",
+      "url": "https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/ensostuff/ONI_change.shtml",
+      "licenca": "Dominio publico (NOAA)",
+      "citacao": ""
+    },
+    {
+      "fonte": "ISRIC SoilGrids 2.0 (250 m)",
+      "url": "https://www.isric.org/explore/soilgrids",
+      "licenca": "CC BY 4.0",
+      "citacao": "Poggio, L., et al. (2021). SoilGrids 2.0. SOIL, 7, 217-240. https://doi.org/10.5194/soil-7-217-2021"
+    },
+    {
+      "fonte": "NASA SRTM 1 Arc-Second Global (30 m), via OpenTopodata",
+      "url": "https://doi.org/10.5066/F7PR7TFT",
+      "licenca": "Dominio publico (NASA/USGS)",
+      "citacao": ""
+    },
+    {
+      "fonte": "FAO ECOCROP (parametros das culturas), base em github.com/openclim/ecocrop",
+      "url": "https://ecocrop.apps.fao.org/ecocrop/srv/en/home",
+      "licenca": "FAO; recorte sob Open Government Licence v3",
+      "citacao": "FAO. ECOCROP database. Modelo de aptidao: Hijmans, R.J., et al. (2001). Plant Genetic Resources Newsletter 127: 1-5."
+    },
+    {
+      "fonte": "FAO Crop Calendar",
+      "url": "https://cropcalendar.apps.fao.org/",
+      "licenca": "FAO",
+      "citacao": ""
+    },
+    {
+      "fonte": "CHIRPS v2.0 daily precipitation (UCSB-CHG), via Google Earth Engine",
+      "url": "https://www.chc.ucsb.edu/data/chirps",
+      "licenca": "Dominio publico (CC0)",
+      "citacao": "Funk, C., et al. (2015). The climate hazards infrared precipitation with stations. Scientific Data, 2, 150066. https://doi.org/10.1038/sdata.2015.66"
+    },
+    {
+      "fonte": "GPM IMERG Final Precipitation L3 Monthly V07, via Google Earth Engine",
+      "url": "https://gpm.nasa.gov/data/imerg",
+      "licenca": "Uso livre (NASA GES DISC)",
+      "citacao": "Huffman, G.J., et al. GPM IMERG Final Precipitation L3 1 month 0.1 degree x 0.1 degree V07. NASA GES DISC."
+    },
+    {
+      "fonte": "MODIS/Terra Vegetation Indices 16-Day L3 Global 250m (MOD13Q1 v061), via Google Earth Engine",
+      "url": "https://doi.org/10.5067/MODIS/MOD13Q1.061",
+      "licenca": "Uso livre (NASA EOSDIS)",
+      "citacao": "Didan, K. (2021). MOD13Q1 MODIS/Terra Vegetation Indices 16-Day L3 Global 250m SIN Grid V061."
+    },
+    {
+      "fonte": "MODIS/Terra+Aqua Land Cover Type Yearly L3 Global 500m (MCD12Q1 v061), via Google Earth Engine",
+      "url": "https://doi.org/10.5067/MODIS/MCD12Q1.061",
+      "licenca": "Uso livre (NASA EOSDIS)",
+      "citacao": "Friedl, M., Sulla-Menashe, D. (2022). MCD12Q1 MODIS/Terra+Aqua Land Cover Type Yearly L3 Global 500m SIN Grid V061."
+    }
+  ]
+}

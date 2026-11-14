@@ -9,6 +9,7 @@ Rotare | coleta de dados para um talhao (Datanauts Brasil, NASA Space Apps 2026)
 Coleta, para um ponto (lat, lon), as fontes do projeto e salva tudo em Parquet:
 
   power      NASA POWER: clima diario (temperatura, chuva, radiacao, umidade, vento)
+  power_historico  NASA POWER de 1981 ate o dia anterior ao --inicio (ET0 para safras antigas, ex.: 1997/98)
   oni        NOAA CPC: indice ONI (El Nino / La Nina) por trimestre
   appeears   NASA AppEEARS: NDVI/EVI do MODIS (MOD13Q1) e, se houver, umidade do solo SMAP L4
   hls        NASA HLS (Landsat + Sentinel-2, 30 m) via AppEEARS: NDVI do talhao com mascara de nuvem
@@ -41,8 +42,8 @@ import sys
 import time
 import unicodedata
 from concurrent.futures import ThreadPoolExecutor
-from dataclasses import dataclass, field
-from datetime import date, datetime, timezone
+from dataclasses import dataclass, field, replace
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 import numpy as np
@@ -248,7 +249,8 @@ def coletar_appeears(ctx: Contexto, incluir_smap: bool = True, espera_max_min: i
             log("  SMAP L4 nao encontrado no catalogo do AppEEARS; seguindo so com MODIS")
 
     saidas: dict[str, pd.DataFrame] = {}
-    for nome, df in _appeears_rodar(ctx, head, camadas, "modis", espera_max_min):
+    rotulo = "modis" if incluir_smap else "ndvi"  # tarefa separada: so NDVI chega bem mais rapido
+    for nome, df in _appeears_rodar(ctx, head, camadas, rotulo, espera_max_min):
         if "mod13q1" in nome:
             saidas["ndvi_modis"] = _limpar_modis(df)
         elif "spl4smgp" in nome:
@@ -650,6 +652,14 @@ CALENDARIO_COLS = ["cultura", "regiao_ou_zona", "plantio_inicio", "plantio_fim",
                    "colheita_fim", "fonte_url", "observacao"]
 
 
+def _texto_aninhado(v):
+    if isinstance(v, dict):
+        return {k: _texto_aninhado(x) for k, x in v.items()}
+    if isinstance(v, (list, tuple, np.ndarray)):
+        return [_texto_aninhado(x) for x in v]
+    return None if v is None else str(v)
+
+
 def coletar_calendario_fao(ctx: Contexto, pais: str = "BR") -> pd.DataFrame:
     """O FAO Crop Calendar nao publica API documentada. Tentamos o servico que o site usa; se nao
     responder, lemos a planilha manual preenchida pelo time a partir de cropcalendar.apps.fao.org."""
@@ -662,8 +672,12 @@ def coletar_calendario_fao(ctx: Contexto, pais: str = "BR") -> pd.DataFrame:
             df = None
         else:
             df["fonte_url"] = url
+            if "sessions" in df:  # dia e mes vem ora como numero, ora como texto: padroniza em texto
+                df["sessions"] = df["sessions"].map(_texto_aninhado)
     except Exception as e:  # noqa: BLE001
         log(f"  calendario FAO automatico indisponivel ({str(e)[:80]}); usando a planilha manual")
+    if df is None and pais != "BR":
+        raise RuntimeError(f"o FAO Crop Calendar nao tem dados para o pais {pais}")
     if df is None:
         if not CALENDARIO_MANUAL.exists():
             pd.DataFrame(columns=CALENDARIO_COLS).to_csv(CALENDARIO_MANUAL, index=False)
@@ -739,8 +753,12 @@ def coletar_zarc(ctx: Contexto, geocodigo: str | None = None) -> pd.DataFrame:
                         linhas.append(l)
             log(f"  {nome_rec}: {len(linhas)} linhas do municipio")
             if linhas:
-                partes.append(pd.read_csv(io.BytesIO(b"\n".join([cab] + linhas)), sep=";",
-                                          encoding="utf-8-sig", dtype={"geocodigo": str}))
+                bruto = b"\n".join([cab] + linhas)
+                try:  # as tabelas do MAPA vem ora em UTF-8, ora em Latin-1 (cp1252)
+                    texto = bruto.decode("utf-8-sig")
+                except UnicodeDecodeError:
+                    texto = bruto.decode("cp1252", errors="replace")
+                partes.append(pd.read_csv(io.StringIO(texto), sep=";", dtype={"geocodigo": str}))
         except Exception as e:  # noqa: BLE001
             log(f"  {nome_rec} falhou ({str(e)[:80]}); seguindo com as outras safras")
     if not partes:
@@ -875,6 +893,135 @@ def coletar_mapbiomas(ctx: Contexto, asset: str) -> pd.DataFrame:
 
 
 # ----------------------------------------------------------------------------------------
+# 7b. Dados NASA pelo Google Earth Engine (global, sem fila): MODIS NDVI, SMAP L4, IMERG mensal e
+#     uso da terra MODIS (MCD12Q1). Mesmos produtos da NASA que o AppEEARS entrega, em segundos.
+# ----------------------------------------------------------------------------------------
+def _ee():
+    import ee  # noqa: PLC0415
+
+    ee.Initialize(project=os.environ.get("EE_PROJECT"))
+    return ee
+
+
+def _ee_regiao(col, ponto, escala: int) -> pd.DataFrame:
+    r = col.getRegion(ponto, escala).getInfo()
+    return pd.DataFrame(r[1:], columns=r[0]) if len(r) > 1 else pd.DataFrame()
+
+
+def coletar_modis_gee(ctx: Contexto, inicio: str = "2000-01-01") -> pd.DataFrame:
+    """MOD13Q1 v061 (NDVI e EVI de 16 dias, 250 m) desde 2000. SummaryQA: 0 bom, 1 marginal, 2 neve, 3 nuvem."""
+    ee = _ee()
+    ponto = ee.Geometry.Point([ctx.lon, ctx.lat])
+    col = ee.ImageCollection("MODIS/061/MOD13Q1").filterDate(inicio, (ctx.fim + timedelta(days=1)).isoformat()) \
+        .select(["NDVI", "EVI", "SummaryQA"])
+    b = _ee_regiao(col, ponto, 250)
+    if b.empty:
+        raise RuntimeError("MODIS sem dados para o ponto")
+    out = pd.DataFrame({"data": pd.to_datetime(b["time"], unit="ms").dt.normalize(),
+                        "ndvi": pd.to_numeric(b["NDVI"], errors="coerce") * 0.0001,
+                        "evi": pd.to_numeric(b["EVI"], errors="coerce") * 0.0001,
+                        "confiab": pd.to_numeric(b["SummaryQA"], errors="coerce")})
+    out.loc[out["confiab"] > 1, ["ndvi", "evi"]] = np.nan
+    out[["ndvi", "evi"]] = out[["ndvi", "evi"]].round(4)
+    ctx.ref("MODIS/Terra Vegetation Indices 16-Day L3 Global 250m (MOD13Q1 v061), via Google Earth Engine",
+            "https://doi.org/10.5067/MODIS/MOD13Q1.061", "Uso livre (NASA EOSDIS)",
+            "Didan, K. (2021). MOD13Q1 MODIS/Terra Vegetation Indices 16-Day L3 Global 250m SIN Grid V061.")
+    return out.drop_duplicates("data").sort_values("data").reset_index(drop=True)
+
+
+def coletar_smap_gee(ctx: Contexto) -> pd.DataFrame:
+    """SMAP L4 (SPL4SMGP v008, 3 em 3 horas, 9 km) desde abr/2015, media diaria.
+    Mes a mes e em paralelo: um ano inteiro de imagens de 3 horas estoura a memoria do Earth Engine."""
+    ee = _ee()
+    ponto = ee.Geometry.Point([ctx.lon, ctx.lat])
+    col = ee.ImageCollection("NASA/SMAP/SPL4SMGP/008").select(["sm_surface", "sm_rootzone"])
+    meses = pd.date_range(f"{max(2015, ctx.inicio.year)}-04-01", ctx.fim, freq="MS")
+
+    def mes(m):
+        return _ee_regiao(col.filterDate(m.strftime("%Y-%m-%d"), (m + pd.offsets.MonthBegin(1)).strftime("%Y-%m-%d")),
+                          ponto, 11000)
+
+    with ThreadPoolExecutor(max_workers=6) as ex:
+        partes = [b for b in ex.map(mes, meses) if not b.empty]
+    if not partes:
+        raise RuntimeError("SMAP sem dados para o ponto")
+    b = pd.concat(partes, ignore_index=True)
+    d = pd.DataFrame({"data": pd.to_datetime(b["time"], unit="ms").dt.normalize(),
+                      "sm_superficie": pd.to_numeric(b["sm_surface"], errors="coerce"),
+                      "sm_raiz": pd.to_numeric(b["sm_rootzone"], errors="coerce")})
+    d = d.groupby("data", as_index=False).mean().round(4)
+    ctx.ref("SMAP L4 Global 3-hourly 9 km Surface and Root Zone Soil Moisture (SPL4SMGP v008), via Google Earth Engine",
+            "https://nsidc.org/data/spl4smgp", "Uso livre (NASA NSIDC DAAC)",
+            "Reichle, R., et al. SMAP L4 Global 3-hourly 9 km EASE-Grid Surface and Root Zone Soil Moisture. NSIDC DAAC.")
+    return d
+
+
+def coletar_imerg_gee(ctx: Contexto) -> pd.DataFrame:
+    """GPM IMERG Final V07 mensal (mm/h no produto) convertido para mm/mes."""
+    ee = _ee()
+    ponto = ee.Geometry.Point([ctx.lon, ctx.lat])
+    col = ee.ImageCollection("NASA/GPM_L3/IMERG_MONTHLY_V07").select("precipitation") \
+        .filterDate(ctx.inicio.isoformat(), (ctx.fim + timedelta(days=1)).isoformat())
+    b = _ee_regiao(col, ponto, 11132)
+    if b.empty:
+        raise RuntimeError("IMERG sem dados para o ponto")
+    data = pd.to_datetime(b["time"], unit="ms").dt.normalize()
+    horas = data.dt.days_in_month * 24
+    df = pd.DataFrame({"data": data,
+                       "chuva_imerg_mm": (pd.to_numeric(b["precipitation"], errors="coerce") * horas).round(1)})
+    ctx.ref("GPM IMERG Final Precipitation L3 Monthly V07, via Google Earth Engine",
+            "https://gpm.nasa.gov/data/imerg", "Uso livre (NASA GES DISC)",
+            "Huffman, G.J., et al. GPM IMERG Final Precipitation L3 1 month 0.1 degree x 0.1 degree V07. NASA GES DISC.")
+    return df.drop_duplicates("data").sort_values("data").reset_index(drop=True)
+
+
+IGBP = {1: "floresta_conifera_perene", 2: "floresta_latifoliada_perene", 3: "floresta_conifera_decidua",
+        4: "floresta_latifoliada_decidua", 5: "floresta_mista", 6: "arbustos_densos", 7: "arbustos_abertos",
+        8: "savana_arborizada", 9: "savana", 10: "pastagem_campo", 11: "area_umida", 12: "lavoura",
+        13: "urbano", 14: "mosaico_lavoura_vegetacao", 15: "neve_gelo", 16: "solo_exposto", 17: "agua"}
+
+
+def coletar_uso_terra_gee(ctx: Contexto) -> pd.DataFrame:
+    """MODIS MCD12Q1 v061, classificacao IGBP (LC_Type1), anual desde 2001, 500 m. 12 = lavoura."""
+    ee = _ee()
+    b = _ee_regiao(ee.ImageCollection("MODIS/061/MCD12Q1").select("LC_Type1"),
+                   ee.Geometry.Point([ctx.lon, ctx.lat]), 500)
+    if b.empty:
+        raise RuntimeError("MCD12Q1 sem dados para o ponto")
+    df = pd.DataFrame({"ano": pd.to_datetime(b["time"], unit="ms").dt.year,
+                       "classe_id": pd.to_numeric(b["LC_Type1"], errors="coerce").astype("Int64")})
+    df["classe"] = df["classe_id"].map(IGBP)
+    ctx.ref("MODIS/Terra+Aqua Land Cover Type Yearly L3 Global 500m (MCD12Q1 v061), via Google Earth Engine",
+            "https://doi.org/10.5067/MODIS/MCD12Q1.061", "Uso livre (NASA EOSDIS)",
+            "Friedl, M., Sulla-Menashe, D. (2022). MCD12Q1 MODIS/Terra+Aqua Land Cover Type Yearly L3 Global 500m SIN Grid V061.")
+    return df.drop_duplicates("ano").sort_values("ano").reset_index(drop=True)
+
+
+_PAIS: dict = {}
+
+
+def pais_do_ponto(lat: float, lon: float) -> tuple[str, str]:
+    """(codigo ISO de 2 letras, nome) pelo OpenStreetMap Nominatim."""
+    return local_do_ponto(lat, lon)[:2]
+
+
+def local_do_ponto(lat: float, lon: float) -> tuple[str, str, str]:
+    """(codigo ISO do pais, nome do pais, "municipio ou condado, estado") pelo OpenStreetMap Nominatim."""
+    k = (round(lat, 3), round(lon, 3))
+    if k not in _PAIS:
+        js = get("https://nominatim.openstreetmap.org/reverse",
+                 params={"lat": lat, "lon": lon, "format": "jsonv2", "zoom": 10, "addressdetails": 1,
+                         "accept-language": "en"}).json()
+        end = js.get("address", {})
+        lugar = (end.get("city") or end.get("town") or end.get("municipality") or end.get("county")
+                 or end.get("state_district") or end.get("village") or "")
+        estado = end.get("state", "")
+        _PAIS[k] = (str(end.get("country_code", "")).upper(), end.get("country", ""),
+                    ", ".join(x for x in (lugar, estado) if x))
+    return _PAIS[k]
+
+
+# ----------------------------------------------------------------------------------------
 # 8. Harmonizacao diaria + indicadores
 # ----------------------------------------------------------------------------------------
 def radiacao_extraterrestre_mm(lat: float, dias_ano: np.ndarray) -> np.ndarray:
@@ -960,11 +1107,16 @@ def main(argv=None):
     ap.add_argument("--inicio", default="2014-01-01")
     ap.add_argument("--fim", default=f"{date.today().year - 1}-12-31")
     ap.add_argument("--saida", default="dados")
-    ap.add_argument("--fontes", default="power,oni,solo,relevo,ecocrop,calendario_fao,zarc,sidra,chirps,imerg,appeears,hls",
-                    help="lista separada por virgula; acrescente mapbiomas se tiver Earth Engine")
+    ap.add_argument("--fontes", default="power,power_historico,oni,solo,relevo,ecocrop,calendario_fao,zarc,sidra,"
+                                        "chirps,imerg_gee,modis,smap,uso_terra,mapbiomas",
+                    help="lista separada por virgula. Fontes so do Brasil (zarc, sidra, mapbiomas) sao puladas fora "
+                         "dele. Alternativas: imerg (earthaccess), appeears e hls (fila do AppEEARS)")
     ap.add_argument("--ciclo-dias", type=int, default=120,
                     help="ciclo de referencia para a aptidao ECOCROP (limitado a faixa GMIN-GMAX de cada cultura)")
-    ap.add_argument("--pais", default="BR", help="codigo do pais para o FAO Crop Calendar")
+    ap.add_argument("--inicio-safra", type=int, default=0,
+                    help="mes em que comeca o ano-safra do lugar (padrao: 7 no hemisferio sul, 1 no norte; "
+                         "ex.: 5 no Punjab, onde o ano agricola junta arroz e trigo)")
+    ap.add_argument("--pais", default="auto", help="codigo ISO do pais (padrao: descobre pelo lat/lon)")
     ap.add_argument("--chirps-inicio", default="1981-01-01",
                     help="inicio da serie CHIRPS (o padrao cobre o El Nino de 1997/98)")
     ap.add_argument("--geocodigo", default=None,
@@ -982,9 +1134,20 @@ def main(argv=None):
     ctx.saida.mkdir(parents=True, exist_ok=True)
     fontes = [f.strip() for f in a.fontes.split(",") if f.strip()]
     tabelas: dict[str, pd.DataFrame] = {}
+    if a.pais == "auto":
+        try:
+            a.pais, nome_pais = pais_do_ponto(ctx.lat, ctx.lon)
+        except Exception as e:  # noqa: BLE001
+            a.pais, nome_pais = "", ""
+            log(f"  pais nao identificado ({str(e)[:60]})")
+    else:
+        nome_pais = a.pais
+    so_brasil = {"zarc", "sidra", "mapbiomas"}
 
     tarefas = {
         "power": lambda: {"power": coletar_power(ctx)},
+        "power_historico": lambda: {"power_historico": coletar_power(
+            replace(ctx, inicio=date(1981, 1, 1), fim=ctx.inicio - timedelta(days=1)))},
         "oni": lambda: {"oni": coletar_oni(ctx)},
         "appeears": lambda: coletar_appeears(ctx, incluir_smap=not a.sem_smap),
         "hls": lambda: coletar_hls(ctx),
@@ -997,12 +1160,21 @@ def main(argv=None):
         "solo": lambda: {"solo": coletar_solo(ctx)},
         "relevo": lambda: {"relevo": coletar_relevo(ctx)},
         "mapbiomas": lambda: {"mapbiomas": coletar_mapbiomas(ctx, a.mapbiomas_asset)},
+        "modis": lambda: {"ndvi_modis": coletar_modis_gee(ctx)},
+        "smap": lambda: {"smap_l4": coletar_smap_gee(ctx)},
+        "imerg_gee": lambda: {"imerg": coletar_imerg_gee(ctx)},
+        "uso_terra": lambda: {"uso_terra_modis": coletar_uso_terra_gee(ctx)},
     }
 
     saidas_da_fonte = {"appeears": ["ndvi_modis"], "hls": ["ndvi_hls"],
                        "ecocrop": ["ecocrop_parametros", "aptidao_ecocrop"],
-                       "chirps": ["chirps", "chirps_safras"], "sidra": ["sidra_pam"]}  # smap_l4 e opcional
-    fonte_de = {n: f for f, ns in saidas_da_fonte.items() for n in ns} | {"smap_l4": "appeears"}
+                       "chirps": ["chirps", "chirps_safras"], "sidra": ["sidra_pam"],
+                       "modis": ["ndvi_modis"], "smap": ["smap_l4"], "imerg_gee": ["imerg"],
+                       "uso_terra": ["uso_terra_modis"]}  # o smap_l4 do appeears e opcional
+    fontes_de: dict[str, list[str]] = {"smap_l4": ["appeears"]}
+    for f_, ns in saidas_da_fonte.items():
+        for n in ns:
+            fontes_de.setdefault(n, []).append(f_)
     chave = f"{ctx.lat},{ctx.lon},{ctx.inicio},{ctx.fim}"
     cache_arq = ctx.saida / "cache.json"
     cache = json.loads(cache_arq.read_text(encoding="utf-8")) if cache_arq.exists() else {}
@@ -1015,6 +1187,9 @@ def main(argv=None):
     for f in fontes:
         if f not in tarefas:
             log(f"fonte desconhecida: {f}")
+            continue
+        if f in so_brasil and a.pais != "BR":
+            log(f"> {f}: so existe para o Brasil, pulando ({nome_pais or 'pais desconhecido'})")
             continue
         if not a.refazer and em_cache(f):
             log(f"> {f}: ja baixado, pulando (use --refazer para baixar de novo)")
@@ -1041,9 +1216,9 @@ def main(argv=None):
     # fontes nao pedidas nesta rodada, mas ja baixadas para o mesmo ponto e periodo, entram na base
     for nome in ("power", "oni", "ndvi_modis", "smap_l4", "ndvi_hls", "imerg", "solo", "relevo", "mapbiomas",
                  "ecocrop_parametros", "aptidao_ecocrop", "calendario_fao", "zarc",
-                 "chirps", "chirps_safras", "sidra_pam"):
+                 "chirps", "chirps_safras", "sidra_pam", "uso_terra_modis"):
         arq = ctx.saida / f"{nome}.parquet"
-        if nome not in tabelas and arq.exists() and cache.get(fonte_de.get(nome, nome)) == chave:
+        if nome not in tabelas and arq.exists() and any(cache.get(f_) == chave for f_ in fontes_de.get(nome, [nome])):
             tabelas[nome] = pd.read_parquet(arq)
             ctx.resumo.setdefault(nome, f"cache ({len(tabelas[nome])} linhas)")
 
@@ -1074,7 +1249,8 @@ def main(argv=None):
     manifesto = {
         "projeto": "Rotare | Datanauts Brasil | NASA Space Apps Challenge 2026",
         "gerado_em": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "ponto": {"nome": ctx.nome, "lat": ctx.lat, "lon": ctx.lon},
+        "ponto": {"nome": ctx.nome, "lat": ctx.lat, "lon": ctx.lon, "pais": a.pais, "pais_nome": nome_pais, "local": _PAIS.get((round(ctx.lat, 3), round(ctx.lon, 3)), ("", "", ""))[2],
+                  "mes_inicio_safra": a.inicio_safra or (7 if ctx.lat < 0 else 1)},
         "periodo": [ctx.inicio.isoformat(), ctx.fim.isoformat()],
         "resultado": ctx.resumo,
         "referencias": ctx.referencias,
