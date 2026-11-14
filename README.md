@@ -430,12 +430,12 @@ All CSV files use UTF-8 encoding, comma (`,`) as column delimiter, and dot (`.`)
 
 **São Paulo, Brazil**
 
-| Member | Role | Responsibilities | Core Domain |
-|:---|:---|:---|:---|
-| [**Gabriel Henrique**](https://github.com/GabrielHenriqueCA) | Project Owner & Solutions Architect | Strategic Direction, System Architecture & Science Integration | Strategy & Architecture |
-| **Alan Nascimento** | Senior Data Specialist | Earth Observation Pipelines, NASA GES DISC & LP DAAC Ingestion | Data Engineering |
-| **Marcelo** | Data Scientist & Agro-Climatologist | Climate Risk Simulation, Evapotranspiration & Soil Index Modeling | Climate & Soil Science |
-| **Werlem** | Full-Stack Software Engineer | Decision Engine Algorithms, Pareto Optimization & Web Application | Software Engineering |
+| Member | Role | Core Domain |
+|:---|:---|:---|
+| [**Gabriel Henrique**](https://github.com/GabrielHenriqueCA) | Project Owner & Solutions Architect | Strategy & Architecture |
+| **Alan Nascimento** | Senior Data Specialist | Data Engineering |
+| **Marcelo** | Data Scientist & Agro-Climatologist | Climate & Soil Science |
+| **Werlem** | Full-Stack Software Engineer | Software Engineering |
 
 ---
 
