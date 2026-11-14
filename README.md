@@ -104,45 +104,73 @@ Designed in accordance with the project dossier, each color serves a direct sema
 ## 🏗 Architecture & Data Flow
 
 ```mermaid
-flowchart LR
-    subgraph SATS["🛰️ Live NASA & Open APIs"]
+flowchart TD
+    subgraph SOURCES["🛰️ NASA & Partner Open Data Streams"]
+        P["NASA POWER API<br/>(Weather & Solar Radiation)"]
+        G["NASA GPM IMERG & CHIRPS<br/>(Precipitation Time Series)"]
+        M["NASA MODIS & HLS<br/>(NDVI / EVI & Land Cover)"]
+        S["NASA SMAP L4 & SoilGrids<br/>(Root-Zone Moisture & Soil Texture)"]
+        B["MAPA ZARC & IBGE PAM<br/>(Planting Windows & Municipal Yields)"]
+    end
+
+    subgraph PIPELINE["⚡ Ingestion & Compilation Pipeline (coleta/)"]
         direction TB
-        P["NASA POWER API<br/>(Weather & Solar)"]
-        G["GPM IMERG (GES DISC)<br/>(Precipitation)"]
-        M["MODIS MOD13Q1 & MCD12Q1<br/>(NDVI since 2000, land cover)"]
-        S["SMAP L4 (NSIDC)<br/>(Soil Moisture)"]
-        SG["ISRIC SoilGrids API<br/>(Texture & Carbon)"]
+        COL["coleta_rotare.py<br/>Automated Multi-Source Ingestion"]
+        MB["montar_banco.py<br/>DuckDB Star-Schema Compiler"]
+        PA["preparar_app.py<br/>Spatial Grid & Series Packager"]
     end
 
-    subgraph PIPELINE["⚡ Ingestion Pipeline (coleta/)"]
+    subgraph DATA["💾 Dual Storage Architecture"]
         direction TB
-        COL["coleta_rotare.py<br/>Automated Ingestion"]
+        PARQ[("Local Storage (data/)<br/>Parquet & CSV Benchmark Tables<br/>★ Immediate Judge Validation")]
+        DB[("DuckDB (data/rotare.duckdb)<br/>Relational Facts, Dims & Ready Views")]
+        APP_DATA[("App Data Payloads (app/data/)<br/>Pre-Computed Grids & Time Series<br/>Zero-Latency Browser Access")]
     end
 
-    subgraph STORAGE["💾 Git-Bundled Datasets (data/)"]
+    subgraph ENGINE["🧠 Deterministic Decision Engines"]
         direction TB
-        PARQ[("Local Storage<br/>Parquet & CSV<br/>★ Immediate Judge Validation")]
-        DB[("DuckDB<br/>rotare.duckdb<br/>dimensions · facts · views")]
+        subgraph JS_MOTOR["In-Browser Engine (app/js/motor/)"]
+            CH["1. NDVI Crop History Inference"]
+            WB["2. Daily FAO-56 Water Balance (ET₀ × Kc)"]
+            SI["3. Soil Conditioning Index (USDA-NRCS)"]
+            RK["4. Multi-Criteria Pareto Ranking"]
+        end
+        subgraph PY_MOTOR["Python Research Engine (motor/banco.py)"]
+            SQL["Historical Yield Backtesting & ZARC Cross-Validation"]
+        end
     end
 
-    subgraph ENGINE["🧠 Decision Engine (app/js/motor/)"]
+    subgraph DEPLOY["🌐 Web Application & Deployment (app/)"]
         direction TB
-        CH["1. Crop History (NDVI Peaks)"]
-        WB["2. Water Balance (FAO-56 ET₀ × Kc)"]
-        SI["3. Relative Soil Conditioning"]
-        RK["4. Pareto Multi-Criteria Ranking"]
+        SPA["Static SPA (index.html, JS, CSS)<br/>MapLibre GL 3D Globe · Turf.js Geodesy"]
+        VERCEL["Vercel Edge Network (vercel.json)<br/>Zero-Backend · Instant Global CDN Delivery"]
     end
 
-    subgraph UI["💻 Web Application (app/)"]
-        APP["Static SPA<br/>MapLibre Globe · Turf.js<br/>No backend · No API key"]
-    end
+    SOURCES -->|Automated API Ingestion| COL
+    COL -->|Persists Datasets| PARQ
+    PARQ -->|Builds Analytical DB| MB
+    MB --> DB
+    PARQ -->|Compiles Browser Payloads| PA
+    PA --> APP_DATA
 
-    SATS -->|Live Ingestion| COL
-    COL -->|Saves to| PARQ
-    PARQ -->|montar_banco.py| DB
-    DB -->|Zero-Setup Offline SQL| ENGINE
-    ENGINE --> UI
+    DB -->|SQL Queries & Benchmarks| SQL
+    APP_DATA -->|Direct In-Memory Execution| JS_MOTOR
+    JS_MOTOR -->|Interactive Decision Support| SPA
+    VERCEL -->|Hosts & Serves| SPA
 ```
+
+### Architectural Highlights
+
+1. **Ingestion Layer (`coleta/`)**: Automated scripts fetch data across 13 open sources with caching, retry logic, and token management. It handles NASA Earthdata APIs, Google Earth Engine, OpenTopodata, and Brazilian official registries (ZARC, IBGE PAM).
+2. **Dual Storage Strategy (`data/` & `app/data/`)**:
+   - **`data/`**: Standardized Parquet and CSV files for all benchmark fields, plus [`rotare.duckdb`](data/rotare.duckdb) providing relational star-schema tables and ready views for instant offline SQL exploration.
+   - **`app/data/`**: Lightweight pre-compiled spatial grids and time-series arrays loaded directly by the browser for zero-latency execution.
+3. **Deterministic Decision Engines**:
+   - **Client-Side Engine (`app/js/motor/`)**: Executes 100% in the user's browser with no server roundtrips. Simulates daily soil water balance (FAO-56), relative yield penalties (FAO-33), soil health conditioning, and Pareto-optimal 3-year crop sequence rankings. Validated by 18 automated tests (`node --test`).
+   - **Python Analytical Engine (`motor/banco.py`)**: Provides SQL helpers to query the DuckDB database, enabling validation against IBGE historical yields and official ZARC planting windows.
+4. **Zero-Backend Global Web Deployment (`app/` + Vercel)**:
+   - Built as a modern, static Single Page Application with MapLibre GL for 3D orbital-to-field mapping and Turf.js for geodesic spatial calculations.
+   - Configured with root and subfolder [`vercel.json`](vercel.json) files for instant, zero-config deployment to the Vercel Edge Network.
 
 > [!TIP]
 > **Live API vs. Offline Validation Datasets:**  
@@ -168,14 +196,16 @@ rotare/
 │   ├── punjab/             # Punjab, India (global demo)
 │   └── eldoret/            # Eldoret, Kenya (global demo)
 ├── motor/           # Decision engine Python interface (banco.py)
-├── app/             # Static web application (no backend, no API key)
+├── app/             # Static web application (no backend, no API key, Vercel-ready)
 │   ├── index.html          # Single-page entry point
 │   ├── css/rotare.css      # Dossier palette UI
 │   ├── js/motor/           # Deterministic engine: catalogo, balanco, rotacao, historico
 │   ├── js/geo/             # Geoprocessing: polygon editor, zonal stats
-│   ├── js/                 # Map, explainability, icons, main app
+│   ├── js/                 # MapLibre map, explainability, icons, main app
 │   ├── data/               # Pre-processed JS data (clima, regiao, talhoes) + field images
-│   └── tests/              # 18 automated engine tests (node --test)
+│   ├── tests/              # 18 automated engine tests (node --test)
+│   └── vercel.json         # Vercel sub-directory deployment config
+├── vercel.json      # Root Vercel zero-config rewrites to /app
 ├── REFERENCES.md    # Exhaustive citations, licenses, and challenge guidelines
 └── LICENSE          # MIT
 ```
