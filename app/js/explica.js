@@ -78,7 +78,8 @@
       "Histórico de pragas, doenças e plantas daninhas do talhão não é conhecido.",
       "O NDVI de 250 m não distingue milho, sorgo e milheto: o histórico é inferido e você confirma.",
     ];
-    if (ctx.cobertura !== "total") out.unshift("Parte do talhão está fora da região de demonstração com dados preparados.");
+    if (ctx.aoVivo) out.push("O calendário do motor é o do Brasil Central (soja + 2ª safra). Fora desse sistema, os resultados são indicativos.");
+    for (const a of ctx.alertasUso || []) out.unshift(a);
     return out;
   }
 

@@ -3,7 +3,8 @@
 (function (R) {
   "use strict";
   const { CULTURAS, SEGUNDA_SAFRA } = R.catalogo;
-  const C = globalThis.ROTARE_CLIMA, T = globalThis.ROTARE_TALHOES || [];
+  const C_PADRAO = globalThis.ROTARE_CLIMA, T = globalThis.ROTARE_TALHOES || [];
+  let C = C_PADRAO;          // troca para o pacote ao vivo quando o talhão está fora da região pré-processada
   const $ = (s, el = document) => el.querySelector(s);
   const $$ = (s, el = document) => [...el.querySelectorAll(s)];
   const fmt = (x, d = 0) => (x === null || x === undefined || Number.isNaN(x) ? "–" : x.toLocaleString("pt-BR", { minimumFractionDigits: d, maximumFractionDigits: d }));
@@ -24,8 +25,9 @@
              maquinario: new Set(Object.keys(CULTURAS)), excluir: new Set(), texto: "" },
     cen: { chuva: 0, temp: 0, elNino: false }, res: null, fixas: null, posRef: {}, sel: null, mesNdvi: null,
     camadas: { esri: true, nasa: false, limites: true, ndvi: false, declividade: false, risco: false, atencao: false },
-    gibsData: "2026-08-03",
+    gibsData: "2026-08-03", servidor: null, aoVivo: false, imagensLive: null, forcar: false, modo: null,
   };
+  S.camadas.uso = false;
 
   let map, editor;
 
@@ -52,6 +54,8 @@
       if (e.key === "Enter" && editor.modo === "poligono") editor.fechar();
     });
     if (window.innerWidth < 860) $("#camadas").classList.add("recolhida");
+    fetch("api/status").then((r) => r.json()).then((j) => { S.servidor = !!j.earth_engine; })
+      .catch(() => { S.servidor = false; }).finally(() => { if (S.passo === "talhao") atualizarTalhao(); });
     irPara("local");
   }
 
@@ -115,9 +119,9 @@
           <div><b>${esc(t.nome)}</b><small>${esc(t.fazenda)} · Sorriso, MT</small><div style="margin-top:5px;display:flex;gap:4px"><span class="chip num">${fmt(ha, 0)} ha</span>${t.irrigado ? '<span class="chip ceu">irrigado</span>' : ""}</div></div>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" opacity=".5"><path d="M9 6l6 6-6 6"/></svg></button>`;
       }).join("")}</div>
-      <div class="aviso">Análise completa disponível na região de demonstração ${G ? `(${esc(G.nome)}, retângulo tracejado azul no mapa)` : ""}. Em qualquer outro lugar do mundo você pode ver o satélite e delimitar a área; o Rotare avisa quando não houver dados preparados.</div>
+      <div class="aviso">Na região de demonstração ${G ? `(${esc(R.zonal.regiaoPadrao().nome)}, retângulo tracejado azul)` : ""} os dados já estão prontos. Em qualquer outro lugar, o Rotare busca ao vivo NDVI, solo, relevo, uso do solo, chuva e temperatura para o seu talhão (cerca de 20 s na primeira vez).</div>
     </section>`;
-    $("#ir").onclick = () => voarPara(+$("#lat").value, +$("#lon").value);
+    $("#ir").onclick = () => irParaCoordenada(+$("#lat").value, +$("#lon").value);
     $$("[data-demo]").forEach((b) => (b.onclick = () => carregarDemo(b.dataset.demo)));
     const busca = $("#busca");
     let t0;
@@ -132,7 +136,7 @@
     const m = q.match(/^\s*(-?\d+(?:[.,]\d+)?)\s*[,;\s]\s*(-?\d+(?:[.,]\d+)?)\s*$/);
     if (m) {
       const lat = +m[1].replace(",", "."), lon = +m[2].replace(",", ".");
-      if (Math.abs(lat) <= 90 && Math.abs(lon) <= 180) { box.classList.add("oculto"); if (imediato) voarPara(lat, lon); else { $("#lat").value = lat; $("#lon").value = lon; } return; }
+      if (Math.abs(lat) <= 90 && Math.abs(lon) <= 180) { box.classList.add("oculto"); $("#lat").value = lat; $("#lon").value = lon; if (imediato) irParaCoordenada(lat, lon); return; }
     }
     const demos = T.filter((t) => (t.nome + " " + t.fazenda).toLowerCase().includes(q.toLowerCase()))
       .map((t) => ({ nome: `${t.nome} · ${t.fazenda}`, demo: t.id }));
@@ -147,7 +151,7 @@
     box.classList.remove("oculto");
     $$("button", box).forEach((b) => (b.onclick = () => {
       const x = itens[+b.dataset.i]; box.classList.add("oculto");
-      if (x.demo) carregarDemo(x.demo); else voarPara(x.lat, x.lon);
+      if (x.demo) carregarDemo(x.demo); else { $("#lat").value = x.lat.toFixed(5); $("#lon").value = x.lon.toFixed(5); irParaCoordenada(x.lat, x.lon, x.nome); }
     }));
     if (imediato && itens.length === 1) $$("button", box)[0].click();
   }
@@ -163,6 +167,14 @@
       map.once("moveend", ok);
       map.flyTo({ center: [lon, lat], zoom, speed: 0.7, curve: 1.6, essential: true, padding: paddingLateral() });
     });
+  }
+  async function irParaCoordenada(lat, lon, nome) {
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) { toast("Coordenadas inválidas"); return; }
+    toast(`${nome ? nome.split(",")[0] + " · " : ""}${lat.toFixed(5)}, ${lon.toFixed(5)}`, 4000);
+    S.demo = null;
+    await voarPara(lat, lon);
+    irPara("talhao");
+    toast("Agora desenhe o talhão: clique e arraste sobre a área", 3500);
   }
   function paddingLateral() { return window.innerWidth < 860 ? { bottom: window.innerHeight * 0.5 } : { left: 440 }; }
 
@@ -200,6 +212,14 @@
     else if (f === "desfazer") editor.desfazer();
     else if (f === "refazer") editor.refazer();
     else if (f === "limpar") { editor.limpar(); editor.iniciar("retangulo"); }
+  }
+  // De onde vêm os dados do talhão: região pré-processada, pacote ao vivo já carregado, ou buscar ao vivo
+  function modoDados(anel) {
+    const P = R.zonal.regiaoPadrao();
+    if (P && R.zonal.cobertura(anel, { bbox: P.bbox }) === "total") return "padrao";
+    const A = R.zonal.regiao();
+    if (A && A.aoVivo && R.zonal.cobertura(anel, A) === "total") return "aovivo_pronto";
+    return "aovivo";
   }
   let rafTalhao = 0;
   function aoMudarTalhao(ev) {
@@ -241,9 +261,11 @@
         : "Arraste vértices e pontos médios. Duplo clique num vértice remove. Arraste o interior para mover",
       nenhum: "Escolha Retângulo ou Polígono",
     }[modo];
-    S.cob = m ? R.zonal.cobertura(m.anel) : null;
-    const coberturaTxt = { total: ["broto", "Dentro da região com dados"], parcial: ["palha", "Parte fora da região com dados"], fora: ["seca", "Fora da região com dados"], sem_dados: ["seca", "Sem dados"] };
-    const [cc, ct] = m ? coberturaTxt[S.cob] : ["", ""];
+    S.modo = m ? modoDados(m.anel) : null;
+    const semServidor = S.modo === "aovivo" && S.servidor === false;
+    const coberturaTxt = { padrao: ["broto", "Região pré-processada"], aovivo_pronto: ["ceu", "Dados ao vivo já carregados"],
+      aovivo: semServidor ? ["seca", "Servidor de dados desligado"] : ["ceu", "Dados buscados ao vivo (~20 s)"] };
+    const [cc, ct] = m ? coberturaTxt[S.modo] : ["", ""];
     $("#painel-corpo").innerHTML = `<section>
       <div class="sobre">Etapa 2 · Delimitação</div>
       <h2>${S.demo && m ? esc(S.demo.nome) : "Desenhe seu talhão"}</h2>
@@ -259,21 +281,44 @@
       <div style="color:var(--papel-2)">${esc(localizacao(m))}</div>
       ${m.autoIntersecao ? `<div class="aviso seca">O polígono se cruza. Mova os vértices para desfazer o cruzamento antes de analisar.</div>` : ""}
       ${m.pequeno ? `<div class="aviso seca">Área menor que 0,5 ha: pequena demais para as grades de satélite.</div>` : ""}
-      ${S.cob === "fora" ? `<div class="aviso seca">Não há dados preparados para este local. Você pode delimitar e medir, mas a análise completa está disponível na região de Sorriso (MT). Para outra região, rode <code>coleta/coletar.ps1</code> e <code>preparar_app.py</code>.</div>` : ""}
-      ${S.cob === "parcial" ? `<div class="aviso ouro">Parte do talhão está fora da região com dados: a análise usa só a parte coberta.</div>` : ""}
+      ${S.modo === "aovivo" && !semServidor ? `<div class="aviso">Fora da região pré-processada: ao analisar, o Rotare busca no Google Earth Engine e na NASA POWER os mesmos dados (NDVI, uso do solo, solo, relevo, chuva e temperatura) para este polígono.</div>` : ""}
+      ${semServidor ? `<div class="aviso seca">Para analisar fora de Sorriso, o servidor de dados precisa estar ligado: na pasta <code>rotare/app</code>, rode <code>python servidor.py</code> com o ambiente que tem o Earth Engine. Na versão publicada (sem servidor) só a região de demonstração é analisada.</div>` : ""}
       <details><summary>Coordenadas dos vértices (${m.vertices})</summary><div class="coords">${m.anel.slice(0, -1).map((p, i) => `${i + 1}. ${p[1].toFixed(6)}, ${p[0].toFixed(6)}`).join("<br>")}</div></details>`
       : `<div class="aviso">Dica: clique em um talhão de demonstração (contorno azul) para carregar uma lavoura real de Sorriso.</div>`}
     </section>`;
-    rodape(`<button class="btn ouro grande" id="analisar" ${m && m.valido && S.cob !== "fora" && S.cob !== "sem_dados" ? "" : "disabled"}>ANALISAR MEU TALHÃO</button>`);
+    rodape(`<button class="btn ouro grande" id="analisar" ${m && m.valido && !semServidor ? "" : "disabled"}>ANALISAR MEU TALHÃO</button>`);
     $("#analisar").onclick = analisar;
   }
 
   // ===================================================================== 3. análise
+  async function buscarAoVivo() {
+    const [w, s, e, n] = S.met.bbox;
+    const r = await fetch(`api/pacote?w=${w}&s=${s}&e=${e}&n=${n}`);
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.erro || "falha ao buscar dados");
+    j.regiao.aoVivo = true;
+    if (S.local && S.local.nome && !S.local.nome.startsWith("Buscando")) j.regiao.nome = S.local.nome;
+    R.zonal.definirRegiao(j.regiao); R.mapa.trocarRegiaoMapa(map);
+    C = { ...j.clima, enso_safra: C_PADRAO.enso_safra };
+    S.imagensLive = j.imagens; S.aoVivo = true;
+    return `${j.segundos ? fmt(j.segundos, 0) + " s no Earth Engine" : "do cache local"} · NDVI, uso do solo, solo, relevo, chuva e temperatura`;
+  }
   async function analisar() {
     const ov = $("#analise");
+    const modo = modoDados(S.anel);
+    if (modo === "padrao") {
+      if (R.zonal.regiao().aoVivo) { R.zonal.definirRegiao(R.zonal.regiaoPadrao()); R.mapa.trocarRegiaoMapa(map); }
+      C = C_PADRAO; S.aoVivo = false; S.imagensLive = null;
+    }
+    S.forcar = false;
     const etapas = [
-      ["Identificando a área selecionada", () => `${fmt(S.met.areaHa, 1)} ha · ${S.met.vertices} vértices · ${S.cob === "total" ? "100% na região com dados" : "parcialmente coberto"}`],
-      ["Consultando histórico de satélite", () => { const n = R.zonal.serieNdvi(S.anel); const u = R.zonal.usoTerra(S.anel); S.raiox = { ndvi: n, uso: u }; return `NDVI MODIS: ${n.celulas} células de 270 m × ${n.serie.length} meses · MapBiomas ${u[0].ano}–${u[u.length - 1].ano}`; }],
+      ["Identificando a área selecionada", () => `${fmt(S.met.areaHa, 1)} ha · ${S.met.vertices} vértices · ${modo === "padrao" ? "região pré-processada" : "fora da região pré-processada"}`],
+      ...(modo === "aovivo" ? [["Buscando dados de satélite desta área ao vivo", buscarAoVivo]] : []),
+      ["Consultando histórico de satélite e uso do solo", () => {
+        const n = R.zonal.serieNdvi(S.anel), u = R.zonal.usoTerra(S.anel), a = R.zonal.usoAtual(S.anel);
+        S.raiox = { ndvi: n, uso: u, usoAtual: a };
+        return `NDVI MODIS: ${n.celulas} células × ${n.serie.length} meses${u ? ` · MapBiomas ${u[0].ano}–${u[u.length - 1].ano}` : ""}${a ? ` · WorldCover: ${Math.round(a.agricola * 100)}% agrícola, ${Math.round(a.urbano * 100)}% construções` : ""}`;
+      }],
       ["Analisando precipitação e clima", () => { S.raiox.clima = resumoClima(); return `${S.raiox.clima.nAnos} safras de chuva diária CHIRPS · temperatura NASA POWER`; }],
       ["Consultando características do solo", () => { S.raiox.solo = R.zonal.solo(S.anel); S.raiox.relevo = R.zonal.relevo(S.anel); return `SoilGrids: ${S.raiox.solo.celulas} células · SRTM: ${S.raiox.relevo.celulas} células de 90 m`; }],
       ["Calculando indicadores ambientais", () => { S.raiox.agua = resumoAgua(); return `Água disponível ${fmt(S.raiox.solo.cad, 0)} mm/m · SMAP ${S.raiox.agua.nMeses} meses`; }],
@@ -294,7 +339,7 @@
         li.classList.add("ativa");
         await espera(380);
         const t0 = performance.now();
-        const txt = etapas[i][1]();
+        const txt = await etapas[i][1]();
         $("small", li).textContent = `${txt} · ${fmt(performance.now() - t0, 0)} ms`;
         li.classList.replace("ativa", "ok");
         await espera(170);
@@ -302,7 +347,7 @@
       await espera(450);
     } catch (e) {
       console.error(e);
-      ov.classList.add("oculto"); modal(`<h3>Não foi possível analisar</h3><p>${esc(e.message)}</p>`); return;
+      ov.classList.add("oculto"); modal(`<h3>Não foi possível analisar</h3><p>${esc(e.message)}</p><p>Se a área estiver fora de Sorriso, confira se o servidor (<code>python servidor.py</code>) está ligado e com acesso ao Earth Engine.</p>`); return;
     }
     ov.classList.add("oculto");
     S.res = null; S.fixas = null;
@@ -349,15 +394,25 @@
     const X = S.raiox, m = S.met;
     if (!X) { irPara("talhao"); return; }
     const so = X.solo, rel = X.relevo, cl = X.clima, ag = X.agua;
-    const nativa = X.uso[X.uso.length - 1].fracaoNativa;
+    const nativa = X.uso ? X.uso[X.uso.length - 1].fracaoNativa : 0;
+    const UA = X.usoAtual;
     const milhoFalha = X.ref.milho.falha;
     const opcoes = Object.entries(SEGUNDA_SAFRA).map(([k, v]) => `<option value="${k}">Soja + ${v.nome}</option>`).join("");
     const ult3 = S.safras.filter((s) => s.opcao).slice(-3);
-    const imgs = S.demo && S.demo.imagens ? S.demo.imagens.itens.filter((x) => x.arquivo) : [];
+    const imgs = S.demo && S.demo.imagens ? S.demo.imagens.itens.filter((x) => x.arquivo)
+      : (S.aoVivo && S.imagensLive ? S.imagensLive.itens : []);
     $("#painel-corpo").innerHTML = `<section>
       <div class="sobre">Etapa 3 · Raio-X do talhão</div>
       <h2>${S.demo ? esc(S.demo.nome) : "Seu talhão"} · <span class="num">${fmt(m.areaHa, 1)} ha</span></h2>
-      <p class="lead">${esc(R.zonal.regiao().nome)} · ${m.centroide[1].toFixed(4)}, ${m.centroide[0].toFixed(4)}. Cada número traz a fonte, a resolução e o nível de confiança.</p>
+      <p class="lead">${esc(R.zonal.regiao().nome)} · ${m.centroide[1].toFixed(4)}, ${m.centroide[0].toFixed(4)}. Cada número traz a fonte, a resolução e o nível de confiança.${S.aoVivo ? ' <span class="chip ceu">dados ao vivo</span>' : ""}</p>
+      ${UA ? `<div class="card" style="margin-bottom:10px;${UA.bloqueio ? "border-color:var(--seca)" : ""}">
+        <h4><span class="ponto" style="background:${UA.bloqueio ? "var(--seca)" : "var(--broto)"}"></span>O que existe neste polígono hoje</h4>
+        <div class="barra-pesos" style="height:14px;margin:0 0 10px">${UA.classes.map((c) => `<div title="${esc(c.nome)} ${Math.round(c.fracao * 100)}%" style="flex:${c.fracao};background:${c.cor}"></div>`).join("")}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--papel-2)">${UA.classes.filter((c) => c.fracao >= 0.01).map((c) => `<span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${c.cor};margin-right:5px"></span>${esc(c.nome)} <b class="num">${Math.round(c.fracao * 100)}%</b></span>`).join("")}</div>
+        ${UA.alertas.map((a) => `<div class="aviso ${a.nivel === "bloqueio" ? "seca" : "ouro"}">${esc(a.texto)}</div>`).join("")}
+        ${UA.naoAgricola ? `<div class="aviso seca"><b>Esta área não parece lavoura:</b> só ${Math.round(UA.agricola * 100)}% do polígono é lavoura, pastagem ou solo exposto. Recomendações de rotação não fazem sentido para casas, mata ou água. Redesenhe o talhão sobre a parte agrícola.</div>` : ""}
+        <div class="fonte"><span>${esc(UA.fonte)} · ${UA.celulas} células${X.uso ? ` · MapBiomas ${X.uso[X.uso.length - 1].ano}: ${esc(X.uso[X.uso.length - 1].nome)} (${Math.round(X.uso[X.uso.length - 1].fracao * 100)}%)` : ""}</span><span class="conf alta">observado</span><span>Camada “Uso do solo hoje” no mapa.</span></div>
+      </div>` : ""}
 
       <div class="card">
         <h4><span class="ponto" style="background:var(--ceu)"></span>Histórico agrícola · últimos 10+ anos vistos do espaço</h4>
@@ -367,7 +422,7 @@
           <b>${s.safra}</b> ${ensoDe(s.ano) === "el_nino_forte" ? '<span class="chip seca" style="font-size:9px;padding:1px 5px">El Niño forte</span>' : ""}
           <p>${esc(s.texto)}</p><p style="color:var(--papel-3);font-size:11px">pico verão ${fmt(s.verao, 2)} · 2ª safra ${fmt(s.segunda, 2)}${s.mapbiomas ? ` · MapBiomas: ${esc(s.mapbiomas)}` : ""}</p></div>`).join("")}</div>
         ${imgs.length ? `<div class="rotulo">O talhão visto de cima (NASA HLS 30 m), pico da soja e da safrinha</div>
-          <div class="tira">${imgs.map((x) => `<figure class="${ensoDe(x.ano) === "el_nino_forte" ? "elnino" : ""}"><img loading="lazy" src="data/${x.arquivo}" alt="${x.fase} ${x.ano}"><figcaption><span>${String(x.ano).slice(2)}/${String(x.ano + 1).slice(2)}</span><span>${x.fase}</span></figcaption></figure>`).join("")}</div>
+          <div class="tira">${imgs.map((x) => `<figure class="${ensoDe(x.ano) === "el_nino_forte" ? "elnino" : ""}"><img loading="lazy" src="${x.url || "data/" + x.arquivo}" alt="${x.fase} ${x.ano}"><figcaption><span>${String(x.ano).slice(2)}/${String(x.ano + 1).slice(2)}</span><span>${x.fase}</span></figcaption></figure>`).join("")}</div>
           <div class="fonte"><span>NASA HLS v2.0 (HLSL30 + HLSS30), mediana sem nuvem, via Google Earth Engine. Borda laranja: El Niño forte.</span></div>` : ""}
       </div>
 
@@ -408,15 +463,22 @@
           <span>Declividade máxima</span><b>${fmt(rel.declMax, 1)}%</b>
           <span>Atenção para erosão</span><b style="color:${rel.fracaoAtencao > 0.1 ? "var(--seca)" : "var(--broto)"}">${rel.fracaoAtencao > 0 ? pct(rel.fracaoAtencao) + " da área > 8%" : "baixa"}</b>
           <span>Vegetação nativa no polígono</span><b style="color:${nativa > 0 ? "var(--seca)" : "var(--broto)"}">${nativa > 0 ? pct(nativa) : "não detectada"}</b></div>
-          <div class="fonte"><span>NASA SRTM 30 m → ~90 m · ${rel.celulas} células · nativa: MapBiomas ${X.uso[X.uso.length - 1].ano}</span><span class="conf alta">alta</span></div></div>
+          <div class="fonte"><span>NASA SRTM 30 m → ~90 m · ${rel.celulas} células${X.uso ? ` · nativa: MapBiomas ${X.uso[X.uso.length - 1].ano}` : " · MapBiomas só cobre o Brasil"}</span><span class="conf alta">alta</span></div></div>
       </div>
       ${nativa > 0 ? `<div class="aviso seca">${pct(nativa)} do polígono aparece como vegetação nativa no MapBiomas. Essa parte não entra no cultivo: veja a camada “Áreas de atenção” no mapa.</div>` : ""}
     </section>`;
     $$(".confirma select").forEach((s) => { s.value = S.atual[+s.dataset.ano]; s.onchange = () => { S.atual[+s.dataset.ano] = s.value; S.atualConfirmada = true; S.fixas = null; S.res = null; $("#confirmar").textContent = "✓ Confirmada"; $("#confirmar").classList.add("on"); }; });
     $("#confirmar").onclick = () => { S.atualConfirmada = true; $("#confirmar").textContent = "✓ Confirmada"; $("#confirmar").classList.add("on"); };
     $$(".ponto-ndvi").forEach((p) => (p.onclick = () => { verNdvi(+p.dataset.i); }));
-    rodape(`<button class="btn ouro grande" id="ir-prefs">Definir minhas prioridades →</button>`);
-    $("#ir-prefs").onclick = () => irPara("prefs");
+    if (UA && UA.bloqueio && !S.forcar) {
+      rodape(`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button class="btn grande" id="redesenhar">Redesenhar o talhão</button><button class="btn grande" id="forcar" style="border-color:var(--seca);color:#F2A08A">Analisar mesmo assim</button></div>`);
+      $("#redesenhar").onclick = () => { irPara("talhao"); alternarCamada("uso", true); };
+      $("#forcar").onclick = () => { S.forcar = true; irPara("prefs"); };
+    } else {
+      rodape(`<button class="btn ouro grande" id="ir-prefs">Definir minhas prioridades →</button>`);
+      $("#ir-prefs").onclick = () => irPara("prefs");
+    }
+    if (UA && UA.urbano + UA.agua + UA.mata > 0.05) { S.camadas.uso = true; R.mapa.atualizarUso(map, S.anel); R.mapa.mostrar(map, "uso", true); renderCamadas(); }
   }
   function verNdvi(i) {
     S.mesNdvi = i; S.camadas.ndvi = true;
@@ -542,6 +604,8 @@
         <p class="lead" style="margin:0">${S.res.nSequencias} combinações avaliadas contra ${cl.nAnos} anos de clima real (${cl.anos[0]}/${String(cl.anos[0] + 1).slice(2)} a ${cl.anos[cl.anos.length - 1]}/${String(cl.anos[cl.anos.length - 1] + 1).slice(2)}), dia a dia, com o solo deste talhão. <span id="ms" class="num" style="color:var(--papel-3)"></span></p></div>
         <div style="display:flex;gap:8px"><button class="btn mini" id="como2">Como calculamos?</button><button class="btn mini" id="ver-mapa">Ver no mapa</button></div></div>
 
+      ${S.aoVivo ? `<div class="aviso ouro" style="margin:0 0 12px">Dados buscados ao vivo para esta área. O motor usa o calendário soja + 2ª safra do Brasil Central (início das chuvas a partir de 15/set): fora desse sistema, trate os resultados como indicativos.</div>` : ""}
+      ${S.forcar ? `<div class="aviso seca" style="margin:0 0 12px">Você pediu para analisar um polígono que não parece lavoura: ${esc((S.raiox.usoAtual.alertas[0] || { texto: "pouca área agrícola" }).texto)}</div>` : ""}
       <div class="simulador">
         <h3>${ICO.clima.replace("<svg", '<svg width="20" height="20"')} Simulador de cenários climáticos</h3>
         <div class="sim-grade">
@@ -646,7 +710,8 @@
   }
 
   function contextoExplica() {
-    return { cartoes: S.res.cartoes, pesos: S.res.pesos, anos: S.res.anos, resumo: S.res.resumo, cobertura: S.cob, laudo: false };
+    return { cartoes: S.res.cartoes, pesos: S.res.pesos, anos: S.res.anos, resumo: S.res.resumo, cobertura: "total", laudo: false,
+             aoVivo: S.aoVivo, alertasUso: S.raiox.usoAtual ? S.raiox.usoAtual.alertas.map((a) => a.texto) : [] };
   }
   function renderExplica() {
     const c = S.res.cartoes.find((x) => x.id === S.sel);
@@ -709,6 +774,7 @@
     const mes = S.mesNdvi !== null && R.zonal.regiao() ? R.zonal.regiao().ndvi.meses[S.mesNdvi] : null;
     const item = (k, nome, cor, ok = true, extra = "") => `<label class="${ok ? "" : "desab"}"><input type="checkbox" data-c="${k}" ${L[k] ? "checked" : ""} ${ok ? "" : "disabled"}><span class="sw" style="background:${cor}"></span>${nome}${extra}</label>`;
     let leg = "";
+    if (L.uso && tem) leg += Object.values(R.zonal.WORLDCOVER).filter((c) => ["urbano", "agua", "mata"].includes(c[2]) && c[0] !== "Mangue").map((c) => `<div><span class="sw" style="background:${c[1]}"></span>${c[0]}</div>`).join("") + `<div><span class="sw" style="background:rgba(233,196,106,.4)"></span>Lavoura, pastagem, solo</div>`;
     if (L.ndvi && tem) leg += `<div>NDVI ${mes ? mes : ""}<span class="rampa" style="background:linear-gradient(90deg,#8B5E34,#E9C46A,#3DBE7A,#126e40)"></span></div>`;
     if (L.declividade && tem) leg += R.mapa.CLASSES_DECL.map((c) => `<div><span class="sw" style="background:rgba(${c[1].slice(0, 3).join(",")},${c[1][3] / 255})"></span>${c[2]}</div>`).join("");
     if (L.risco && S.res) leg += `<div><span class="sw" style="background:#3DBE7A"></span>Favorável (&lt;10% dos anos)</div><div><span class="sw" style="background:#E9C46A"></span>Atenção (10–25%)</div><div><span class="sw" style="background:#E76F51"></span>Risco elevado (&gt;25%)</div>`;
@@ -717,6 +783,7 @@
       ${item("esri", "Imagem de satélite", "#4C8DF6")}
       ${item("nasa", "NASA HLS 30 m (GIBS)", "#4C8DF6", true, L.nasa ? ` <input type="date" id="gibs-data" value="${S.gibsData}" class="sel" style="padding:2px 4px;font-size:10px;margin-left:auto">` : "")}
       ${item("limites", "Limites do talhão", "#E9C46A", S.anel.length >= 3)}
+      ${item("uso", "Uso do solo hoje (WorldCover)", "#E76F51", tem && !!R.zonal.regiao().worldcover)}
       ${item("ndvi", "Histórico de vegetação (NDVI)", "#3DBE7A", tem)}
       ${item("declividade", "Relevo e declividade", "#D2A57A", tem)}
       ${item("risco", "Risco climático", "#E76F51", !!S.res)}
@@ -733,6 +800,7 @@
     if (k === "esri") R.mapa.mostrar(map, "esri", on);
     if (k === "nasa") R.mapa.definirGibs(map, on ? "HLS_S30_Nadir_BRDF_Adjusted_Reflectance|12" : null, S.gibsData);
     if (k === "limites") editor.visivel(on);
+    if (k === "uso") { if (on) R.mapa.atualizarUso(map, S.anel); R.mapa.mostrar(map, "uso", on); }
     if (k === "ndvi") { if (on) { if (S.mesNdvi === null) S.mesNdvi = R.zonal.regiao().ndvi.meses.indexOf("2025-01"); R.mapa.atualizarNdvi(map, S.mesNdvi); } R.mapa.mostrar(map, "ndvi", on); }
     if (k === "declividade") { if (on) R.mapa.atualizarDeclividade(map); R.mapa.mostrar(map, "declividade", on); }
     if (k === "risco") { atualizarMapaRisco(); R.mapa.mostrar(map, "risco", on); }
