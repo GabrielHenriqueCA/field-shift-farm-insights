@@ -9,7 +9,7 @@
 [![Platform](https://img.shields.io/badge/Brazil-Monitoring-12141F?logo=satellite&logoColor=4C8DF6)](#)
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11+-4C8DF6?logo=python&logoColor=white)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-3DBE7A)](LICENSE)
-[![NASA Space Apps 2026](https://img.shields.io/badge/NASA%20Space%20Apps-2026-E9C46A?logo=nasa&logoColor=12141F)](https://www.spaceappschallenge.org/)
+[![NASA Space Apps 2026](https://img.shields.io/badge/NASA%20Space%20Apps-2026-E9C46A)](https://www.spaceappschallenge.org/)
 [![Data Sources](https://img.shields.io/badge/Open%20Data-13%20Sources-E76F51)](#-nasa--satellite-data)
 
 **A decision-support tool that monitors Brazilian agricultural fields and helps farmers compare three-year crop rotations using NASA satellite data.**
@@ -77,11 +77,11 @@ Designed in accordance with the project dossier, each color serves a direct sema
 ## ✨ Key Features
 
 - 🛰️ **Satellite-based crop history detection** — 10-year NDVI/EVI series from MODIS and HLS to identify past crop cycles and bare-soil periods
-- 🌧️ **Climate risk simulation** — daily water balance using NASA POWER weather and GPM IMERG satellite rainfall, bias-corrected per field
+- 🌧️ **Climate risk simulation** *(in development)* — daily water balance using NASA POWER weather, with rainfall from GPM IMERG and CHIRPS shown as a range across sources
 - 🌍 **ENSO-aware analysis** — classifies each crop year as El Niño, La Niña or neutral using NOAA's Oceanic Niño Index
 - 🧪 **Soil characterization** — clay, organic carbon, pH and texture from ISRIC SoilGrids 2.0 (250 m), with erosion risk from SRTM elevation
 - 📊 **Multi-criteria ranking** — Pareto-front scoring of three-year rotation sequences weighted by farmer priorities
-- 🔄 **Fully reproducible & dual-mode** — connects to live NASA APIs on demand, while providing bundled offline validation datasets in the repository
+- 🔄 **Fully reproducible** — one command collects all 13 open sources for any coordinate; the app reads only the bundled Parquet files, so no API is called during the demo
 
 ---
 
@@ -91,7 +91,7 @@ Designed in accordance with the project dossier, each color serves a direct sema
   <img src="assets/img/rotare-dashboard-preview.jpg" alt="Rotare Decision Support Platform Interface" width="100%" style="border-radius: 12px; margin: 15px 0; border: 1px solid rgba(76, 141, 246, 0.2);" />
 </div>
 
-*Multi-criteria analytics dashboard designed with the project dossier palette: 3-year crop sequence evaluation with Pareto ranking scores, historical satellite NDVI trend curves, GIS soil moisture and drought mapping, and 4-pillar radar diagnostic metrics.*
+*Concept mockup generated with AI to illustrate the planned interface (watermarked). It is **not** the working app and its numbers are **not** real data. It will be replaced by screenshots of the real app.*
 
 ---
 
@@ -144,7 +144,7 @@ flowchart LR
 
 ```
 rotare/
-├── assets/img/      # Visual assets, platform mockups, and team badges
+├── assets/img/      # Team brand assets and AI-generated illustrations (watermarked)
 ├── coleta/          # Data collection pipeline (13 open sources, single command)
 │   ├── coleta_rotare.py    # Main API ingestion script
 │   ├── coletar.ps1         # Windows PowerShell launcher (auto venv setup)
@@ -209,10 +209,10 @@ rotare/
 
 Using IMERG satellite rainfall, the only two crop years with a strong water deficit coincided with the two strong El Niño events:
 
-| Crop Year | ENSO Phase | Rainfall Anomaly | Impact on Agronomic Water Balance |
+| Crop Year | ENSO Phase | Water deficit (ET₀ − IMERG rainfall) | Observed municipal outcome (IBGE PAM) |
 |:---:|:---:|:---:|:---|
-| 2015/16 | Strong El Niño | **+369 mm** deficit | Critical deficit during reproductive stage |
-| 2023/24 | Strong El Niño | **+456 mm** deficit | Severe planting delays and yield contraction |
+| 2015/16 | Strong El Niño | **+369 mm** | Lowest soybean yield of 2010–2024 (48 bags/ha) |
+| 2023/24 | Strong El Niño | **+456 mm** | Soybean yield fell from 62.5 to 58 bags/ha |
 
 La Niña years showed surpluses of up to **824 mm**. The POWER reanalysis underestimates rainfall in this region by up to half, which is why Rotare uses IMERG for rainfall totals.
 
@@ -288,13 +288,13 @@ Each field directory under `data/<field>/` contains standardized, ready-to-use a
 
 | File | Description | Format |
 |:---|:---|:---:|
-| `base_diaria.parquet` / `.csv` | Daily series: weather, Hargreaves ET₀, frost (≤ 2 °C), heat (≥ 35 °C), extreme rain (≥ 50 mm), NDVI, soil moisture, crop year, ENSO phase | Parquet / CSV |
+| `base_diaria.parquet` / `.csv` | Daily series: weather, Hargreaves ET₀, frost (≤ 2 °C), heat (≥ 35 °C), extreme rain (≥ 50 mm), CHIRPS rainfall, crop year, ENSO phase. NDVI and soil moisture columns are added when the AppEEARS request completes | Parquet / CSV |
 | `resumo_safras.parquet` / `.csv` | Annual crop-year summary (Jul–Jun): rainfall (POWER, IMERG, CHIRPS), ET₀, water deficit, extreme temperature days, ENSO classification | Parquet / CSV |
 | `zarc.parquet` / `.csv` | Official Brazilian agro-climatic planting risk (20/30/40 %) per crop, cycle, soil class, and 10-day period | Parquet / CSV |
 | `aptidao_ecocrop.parquet` / `.csv` | Indicative climate suitability index (0–1) across 18 crops per planting month | Parquet / CSV |
 | `chirps.parquet` / `chirps_safras.parquet` | Daily CHIRPS rainfall since 1981 and crop-year cumulative series | Parquet / CSV |
 | `sidra_pam.parquet` / `.csv` | Official municipal planted area, production, and yield per crop since 1987 (IBGE PAM) | Parquet / CSV |
-| `manifesto.json` | Complete provenance log with exact API timestamps, bounding coordinates, and citation list | JSON |
+| `manifesto.json` | Collection log: run time, point coordinates, status of each source and citation list | JSON |
 | `csv/` | Directory containing full CSV copies of every table + dedicated README | Directory |
 
 ---
@@ -313,7 +313,9 @@ All CSV files use UTF-8 encoding, comma (`,`) as column delimiter, and dot (`.`)
 | `temp_max_c` | Maximum daily air temperature at 2 m | °C (NASA POWER) |
 | `temp_min_c` | Minimum daily air temperature at 2 m | °C (NASA POWER) |
 | `chuva_power_mm` | Daily modeled rainfall (underestimates in tropical regions; use IMERG for totals) | mm/day (NASA POWER) |
+| `chuva_chirps_mm` | Daily observed rainfall (satellite + stations, ~5 km) | mm/day (CHIRPS) |
 | `umidade_rel_pct` | Relative air humidity at 2 m | % (NASA POWER) |
+| `vento_2m_ms` | Wind speed at 2 m. **Unreliable at this point in the source data; not used** | m/s (NASA POWER) |
 | `radiacao_mj_m2` | Surface all-sky incoming solar radiation | MJ/m²/day (NASA POWER) |
 | `et0_hargreaves_mm` | Reference evapotranspiration calculated via Hargreaves equation (FAO-56) | mm/day (Derived) |
 | `geada` | Frost risk occurrence indicator (`Tmin ≤ 2 °C`) | Boolean (`True`/`False`) |
@@ -328,12 +330,14 @@ All CSV files use UTF-8 encoding, comma (`,`) as column delimiter, and dot (`.`)
 
 | Column | Description | Unit / Notes |
 |:---|:---|:---:|
-| `ano_safra` | Agricultural crop year label | YYYY/YYYY |
+| `ano_safra` | Crop year (2023 = July 2023 to June 2024) | Integer |
 | `chuva_power_mm` | Modeled cumulative rainfall for the crop year | mm (NASA POWER) |
 | `chuva_imerg_mm` | Satellite-observed cumulative rainfall for the crop year (**preferred source**) | mm (GPM IMERG V07) |
 | `et0_hargreaves_mm` | Total atmospheric water demand (cumulative reference evapotranspiration) | mm (FAO-56) |
 | `deficit_hidrico_mm` | Water deficit from POWER (`ET₀ - Rainfall`); positive value = water deficit | mm |
-| `deficit_hidrico_imerg_mm` | Satellite-verified water deficit using IMERG | mm |
+| `deficit_hidrico_imerg_mm` | Water deficit using IMERG rainfall (empty when months are missing) | mm |
+| `chuva_chirps_mm` | Cumulative crop-year rainfall from CHIRPS | mm (CHIRPS) |
+| `deficit_hidrico_chirps_mm` | Water deficit using CHIRPS rainfall | mm |
 | `geada` / `calor_extremo` / `chuva_extrema` | Total count of extreme weather days in that crop year | Days (Count) |
 | `dias` / `safra_completa` | Number of recorded days and completeness flag (`True` for full comparisons) | Integer / Boolean |
 | `meses_imerg` | Number of validated IMERG months available (12 = complete season) | Months (Count) |
@@ -377,7 +381,7 @@ All CSV files use UTF-8 encoding, comma (`,`) as column delimiter, and dot (`.`)
 
 | CSV File | Source | Parameters & Metrics |
 |:---|:---|:---|
-| `power.csv` | NASA POWER API | Raw daily solar irradiance, temperatures, humidity, and atmospheric pressure |
+| `power.csv` | NASA POWER API | Raw daily temperatures, rainfall, humidity, wind (unreliable here) and solar radiation |
 | `imerg.csv` | NASA GES DISC | Monthly calibrated satellite rainfall (mm/month) from Jan 2014 to Sep 2025 |
 | `chirps.csv` | UCSB Climate Hazards | High-resolution (~5 km) daily precipitation grid from 1981 to 2025 |
 | `oni.csv` | NOAA Climate Prediction | 3-month running mean SST anomalies in the Niño 3.4 region since 1950 |
@@ -399,7 +403,7 @@ All CSV files use UTF-8 encoding, comma (`,`) as column delimiter, and dot (`.`)
 | **Vegetation Index** | NDVI measures canopy greenness, not direct chemical soil fertility | Used strictly to detect crop cycles, planting/harvest dates, and bare-soil exposure periods |
 | **Spatial Resolution** | SMAP L4 operates on a 9 km grid with data assimilation | Used to validate regional moisture dynamics, not as a point-scale sensor |
 | **Soil Estimates** | SoilGrids 2.0 is a global ML model with lower confidence in tropical soils | Acknowledged as baseline; in managed Brazilian soils, liming alters native pH (4.8 baseline) — farmers can supply lab soil reports |
-| **Satellite Latency** | GPM IMERG Final has an official latency of ~3.5 months | Complemented with NASA POWER near-real-time daily observations for the latest dates |
+| **Satellite Latency** | GPM IMERG Final has an official latency of ~3.5 months | Recent months rely on NASA POWER (a modeled reanalysis, not observations) and CHIRPS; incomplete IMERG seasons are flagged (`meses_imerg < 12`) |
 | **ENSO Simulation** | El Niño evaluation is historical analog analysis, not a deterministic weather forecast | Evaluates "how past strong El Niño seasons impacted this specific field", clearly communicating risk distributions |
 
 ---
@@ -408,19 +412,22 @@ All CSV files use UTF-8 encoding, comma (`,`) as column delimiter, and dot (`.`)
 
 *In strict compliance with the **NASA Space Apps Challenge 2026 Rules** and the **Use of Super Intelligence (SI) Policy**:*
 
-### 1. 100% Human Idealization, Creativity & Scientific Conception
-- **The project idea, concept, problem definition, and architectural design are entirely our own.**
-- The team (**Datanauts Brasil**) conceived the premise of Rotare: shifting agricultural decision support from single-season planting dates (*when*) to multi-year strategic rotation sequences (*what sequence*).
-- All domain research, selection of NASA and open datasets, mathematical formulations (soil conditioning equations, bucket water balance, Pareto ranking criteria), and agronomic interpretations were conducted directly by the team members.
+### 1. Idea and decisions
+- The team chose the Field Shift challenge and decided Rotare's concept, scope and priorities in its own ideation session.
+- Before the event, AI tools were used as **research support**: analysing the challenge, past Space Apps projects, existing tools and candidate approaches. The team discussed these options and made the final decisions. That research document is not part of this repository.
 
-### 2. AI as a Development & Coding Assistant Only
-- Generative AI coding assistants (Claude by Anthropic) were used **strictly as engineering aids** to assist with boilerplate software development, speed up API response parsing, refactor repetitive pipeline scripts, and format documentation tables.
-- Every source code file that received assistance carries an explicit disclosure comment at the top.
+<!-- TEAM: confirm that the two lines above describe how the idea was decided. If in doubt, check with the event mentors. -->
 
-### 3. Absolute Data Integrity — Zero AI Hallucination
-- **No data, numbers, calculations, or satellite values were generated, simulated, or hallucinated by AI.**
-- Every single metric, rainfall total, NDVI curve, and soil property originates directly from the verified NASA and partner open databases documented in [REFERENCES.md](REFERENCES.md).
-- All calculations are processed through the deterministic, fully audit-proof mathematical engine in this repository.
+### 2. Code and documentation
+- AI coding assistants (Claude by Anthropic) wrote most of the data collection pipeline in [`coleta/`](coleta/) and the first drafts of this README and [REFERENCES.md](REFERENCES.md), under the team's direction. The team reviewed, ran and edited them.
+- AI also suggested some data sources (for example CHIRPS and IBGE SIDRA), which the team approved.
+- Every AI-assisted code file carries a disclosure comment at the top.
+
+### 3. Data integrity
+- **No data values were generated by AI.** Every rainfall total, temperature, soil property, yield and risk value comes from the NASA and partner open data documented in [REFERENCES.md](REFERENCES.md), processed by the deterministic code in this repository.
+
+### 4. Images
+- The banner and the interface mockup are **AI-generated illustrations** and carry a visible watermark. The mockup does not show real data.
 
 > No NASA logo, flag, or official mission identifier is altered or misused in this project.
 
@@ -456,7 +463,7 @@ All CSV files use UTF-8 encoding, comma (`,`) as column delimiter, and dot (`.`)
 *These data were obtained from the NASA Langley Research Center (LaRC) POWER Project*  
 *funded through the NASA Earth Science/Applied Science Program.*
 
-**[Datanauts Brasil](https://github.com/datanauts-brasil) · NASA Space Apps Challenge 2026**  
+**Datanauts Brasil · NASA Space Apps Challenge 2026**  
 *Field Shift: Adapting Farms with NASA Data*
 
 </div>

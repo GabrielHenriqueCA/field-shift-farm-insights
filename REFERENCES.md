@@ -49,6 +49,16 @@ submission guide. The collection script also writes the data references of each 
 | NASA Space Apps Global Winners Announcement | https://www.nasa.gov/learning-resources/stem-engagement-at-nasa/nasa-announces-2025-international-space-apps-challenge-global-winners/ | NASA Stem Engagement global winner precedents |
 | Revista Pesquisa FAPESP | https://revistapesquisa.fapesp.br/ | Brazilian agricultural science and agronomic research context |
 
+## Images
+
+| File | Origin | Notes |
+| --- | --- | --- |
+| `assets/img/rotare-hero-banner.jpg` | AI-generated illustration | Visible "AI-GENERATED" watermark |
+| `assets/img/rotare-dashboard-preview.jpg` | AI-generated concept mockup | Visible watermark; does not show real data |
+| `assets/img/datanauts-*.png` and Datanauts brand files | Datanauts Brasil team identity | Team brand assets |
+
+No NASA logo, flag or mission identifier is used in these images.
+
 ## Methods
 
 | Method | Use | Citation |
