@@ -344,10 +344,6 @@ Each field directory under `data/<field>/` contains standardized, ready-to-use a
 
 **São Paulo, Brazil**
 
-<div align="center">
-  <img src="assets/img/team-badges.jpg" alt="Datanauts Brasil Team Mission Badges" width="100%" style="border-radius: 12px; margin: 15px 0; border: 1px solid rgba(76, 141, 246, 0.3);" />
-</div>
-
 | Member | Role | Responsibilities | Core Domain |
 |:---|:---|:---|:---|
 | [**Gabriel Henrique**](https://github.com/GabrielHenriqueCA) | Project Owner & Solutions Architect | Strategic Direction, System Architecture & Science Integration | Strategy & Architecture |
