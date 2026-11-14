@@ -6,7 +6,35 @@
   const ESRI = "https://server.arcgisonline.com/ArcGIS/rest/services";
   const CORES = { verde: "#3DBE7A", amarelo: "#E9C46A", vermelho: "#E76F51", azul: "#4C8DF6", ouro: "#E9C46A" };
 
+  // Estrelas pequenas (canvas estático + algumas que piscam), atrás do mapa transparente
+  function criarCeu() {
+    const ceu = document.createElement("div"); ceu.className = "estrelado"; ceu.setAttribute("aria-hidden", "true");
+    const cv = document.createElement("canvas"); ceu.appendChild(cv);
+    document.body.prepend(ceu);
+    let semente = 7; const rnd = () => ((semente = (semente * 16807) % 2147483647) / 2147483647);
+    function desenhar() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2), w = innerWidth, h = innerHeight;
+      cv.width = w * dpr; cv.height = h * dpr;
+      const c = cv.getContext("2d"); c.scale(dpr, dpr); semente = 7;
+      const n = Math.round((w * h) / 2600);
+      for (let i = 0; i < n; i++) {
+        const r = rnd() < 0.92 ? 0.4 + rnd() * 0.5 : 0.9 + rnd() * 0.6, a = 0.25 + rnd() * 0.6;
+        const tom = rnd(); c.fillStyle = tom < 0.12 ? `rgba(233,196,106,${a})` : tom < 0.25 ? `rgba(160,190,255,${a})` : `rgba(244,241,234,${a})`;
+        c.beginPath(); c.arc(rnd() * w, rnd() * h, r, 0, Math.PI * 2); c.fill();
+      }
+    }
+    desenhar(); addEventListener("resize", desenhar);
+    for (let i = 0; i < 18; i++) {
+      const s = document.createElement("i");
+      s.style.left = `${(rnd() * 100).toFixed(2)}%`; s.style.top = `${(rnd() * 100).toFixed(2)}%`;
+      s.style.animationDelay = `${(rnd() * 4).toFixed(2)}s`; s.style.animationDuration = `${(3 + rnd() * 4).toFixed(2)}s`;
+      ceu.appendChild(s);
+    }
+    return ceu;
+  }
+
   function criarMapa(el) {
+    const ceu = criarCeu();
     const map = new maplibregl.Map({
       container: el,
       style: {
@@ -18,13 +46,16 @@
           rotulos: { type: "raster", tiles: [`${ESRI}/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}`], tileSize: 256, maxzoom: 19 },
         },
         layers: [
-          { id: "fundo", type: "background", paint: { "background-color": "#07080d" } },
+          { id: "fundo", type: "background", paint: { "background-color": "rgba(0,0,0,0)" } },
           { id: "esri", type: "raster", source: "esri", paint: { "raster-fade-duration": 250 } },
           { id: "rotulos", type: "raster", source: "rotulos", paint: { "raster-opacity": 0.8 } },
         ],
       },
       center: [-52, -13], zoom: 1.7, maxPitch: 60, attributionControl: { compact: true },
     });
+    // perto do chão o globo cobre a tela: esconde o céu para não gastar pintura
+    const olharCeu = () => ceu.classList.toggle("longe", map.getZoom() > 7);
+    map.on("zoomend", olharCeu); olharCeu();
     map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), "bottom-right");
     map.addControl(new maplibregl.ScaleControl({ unit: "metric" }), "bottom-right");
     map.on("style.load", () => {

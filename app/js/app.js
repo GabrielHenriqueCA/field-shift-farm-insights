@@ -54,6 +54,8 @@
       if (e.key === "Enter" && editor.modo === "poligono") editor.fechar();
     });
     if (window.innerWidth < 860) $("#camadas").classList.add("recolhida");
+    // ao girar o celular ou estreitar a janela, o painel de camadas recolhe para não cobrir o conteúdo
+    matchMedia("(max-width: 859px)").addEventListener("change", (ev) => { if (ev.matches) { $("#camadas").classList.add("recolhida"); renderCamadas(); } });
     fetch("api/status").then((r) => r.json()).then((j) => { S.servidor = !!j.earth_engine; })
       .catch(() => { S.servidor = false; }).finally(() => { if (S.passo === "talhao") atualizarTalhao(); });
     irPara("local");
@@ -320,11 +322,12 @@
         return `NDVI MODIS: ${n.celulas} células × ${n.serie.length} meses${u ? ` · MapBiomas ${u[0].ano}–${u[u.length - 1].ano}` : ""}${a ? ` · WorldCover: ${Math.round(a.agricola * 100)}% agrícola, ${Math.round(a.urbano * 100)}% construções` : ""}`;
       }],
       ["Analisando precipitação e clima", () => { S.raiox.clima = resumoClima(); return `${S.raiox.clima.nAnos} safras de chuva diária CHIRPS · temperatura NASA POWER`; }],
-      ["Consultando características do solo", () => { S.raiox.solo = R.zonal.solo(S.anel); S.raiox.relevo = R.zonal.relevo(S.anel); return `SoilGrids: ${S.raiox.solo.celulas} células · SRTM: ${S.raiox.relevo.celulas} células de 90 m`; }],
-      ["Calculando indicadores ambientais", () => { S.raiox.agua = resumoAgua(); return `Água disponível ${fmt(S.raiox.solo.cad, 0)} mm/m · SMAP ${S.raiox.agua.nMeses} meses`; }],
+      ["Consultando características do solo", () => { S.raiox.solo = R.zonal.solo(S.anel); S.raiox.relevo = R.zonal.relevo(S.anel); if (!S.raiox.solo) return `SoilGrids: nenhum solo mapeado na área (cidade ou água) · SRTM: ${S.raiox.relevo.celulas} células`; return `SoilGrids: ${S.raiox.solo.vizinho ? "célula vizinha a " + fmt(S.raiox.solo.vizinho.distanciaKm, 1) + " km" : S.raiox.solo.celulas + " células"} · SRTM: ${S.raiox.relevo.celulas} células de 90 m`; }],
+      ["Calculando indicadores ambientais", () => { S.raiox.agua = resumoAgua(); if (!S.raiox.solo) return `SMAP ${S.raiox.agua.nMeses} meses · sem solo, sem água disponível`; return `Água disponível ${fmt(S.raiox.solo.cad, 0)} mm/m · SMAP ${S.raiox.agua.nMeses} meses`; }],
       ["Preparando as estratégias de rotação", () => {
         S.safras = R.historico.inferirSafras(S.raiox.ndvi.serie, S.raiox.uso);
         S.atual = R.historico.rotacaoAtual(S.safras); S.atualConfirmada = false;
+        if (!S.raiox.solo) { S.raiox.ref = null; return `${S.safras.length} safras lidas · rotações não calculadas: não há solo agrícola mapeado`; }
         S.raiox.ref = R.rotacao.resumirOpcoes(R.rotacao.simularOpcoes(C, soloMotor(), S.prefs.irrigado, null));
         return `${S.safras.length} safras inferidas · ${R.rotacao.ANOS_REFERENCIA} anos × 7 opções simulados dia a dia`;
       }],
@@ -396,7 +399,7 @@
     const so = X.solo, rel = X.relevo, cl = X.clima, ag = X.agua;
     const nativa = X.uso ? X.uso[X.uso.length - 1].fracaoNativa : 0;
     const UA = X.usoAtual;
-    const milhoFalha = X.ref.milho.falha;
+    const milhoFalha = X.ref ? X.ref.milho.falha : null;
     const opcoes = Object.entries(SEGUNDA_SAFRA).map(([k, v]) => `<option value="${k}">Soja + ${v.nome}</option>`).join("");
     const ult3 = S.safras.filter((s) => s.opcao).slice(-3);
     const imgs = S.demo && S.demo.imagens ? S.demo.imagens.itens.filter((x) => x.arquivo)
@@ -435,13 +438,15 @@
 
       <div class="rotulo" style="margin-top:20px">Indicadores ambientais do talhão</div>
       <div class="grade-cards">
-        <div class="card"><h4><span class="ponto" style="background:var(--terra)"></span>Solo</h4><div class="kv">
+        ${!so ? `<div class="card" style="border-color:var(--seca)"><h4><span class="ponto" style="background:var(--seca)"></span>Solo</h4>
+          <p style="color:var(--papel-2);font-size:13px;margin:0">Não há solo agrícola mapeado nesta área: o SoilGrids não estima solo sob cidades, construções e água. Por isso o Rotare não calcula rotações aqui.</p>
+          <div class="fonte"><span>ISRIC SoilGrids 2.0 · 250 m</span><span class="conf alta">sem solo</span></div></div>` : `<div class="card"><h4><span class="ponto" style="background:var(--terra)"></span>Solo</h4><div class="kv">
           <span>Textura (0–30 cm)</span><b>${so.textura}</b>
           <span>Areia · argila</span><b>${fmt(so.areia, 0)}% · ${fmt(so.argila, 0)}%</b>
           <span>Carbono orgânico</span><b>${fmt(so.carbono, 1)} g/kg</b>
           <span>Água disponível</span><b>${fmt(so.cad, 0)} mm/m</b>
           <span>Nutrientes (N, P, K)</span><b style="color:var(--papel-3)">sem laudo</b></div>
-          <div class="fonte"><span>ISRIC SoilGrids 2.0 · 250 m · ${so.celulas} células · água disponível por Saxton & Rawls (2006)</span><span class="conf baixa">estimativa</span></div></div>
+          <div class="fonte"><span>ISRIC SoilGrids 2.0 · 250 m · ${so.vizinho ? `sem estimativa dentro do polígono (cidade ou água): usada a célula com dado mais próxima, a ${fmt(so.vizinho.distanciaKm, 1)} km` : `${so.celulas} células`} · água disponível por Saxton & Rawls (2006)</span><span class="conf baixa">estimativa</span></div></div>`}
         <div class="card"><h4><span class="ponto" style="background:var(--ceu)"></span>Clima</h4><div class="kv">
           <span>Chuva média anual</span><b>${fmt(cl.chuvaAnual, 0)} mm</b>
           <span>Temperatura média</span><b>${fmt(cl.tmed, 1)} °C</b>
@@ -452,7 +457,7 @@
         <div class="card"><h4><span class="ponto" style="background:var(--ceu)"></span>Água</h4><div class="kv">
           <span>Umidade na zona de raízes</span><b>${ag.anomalia >= 0 ? "+" : ""}${pct(ag.anomalia, 0)} vs. média</b>
           <span>Período da anomalia</span><b style="font-size:11px">${ag.periodoAnom}</b>
-          <span>Quebra do milho safrinha</span><b style="color:${milhoFalha > 0.2 ? "var(--seca)" : milhoFalha > 0.08 ? "var(--palha)" : "var(--broto)"}">${pct(milhoFalha)} dos anos</b>
+          ${milhoFalha === null ? "" : `<span>Quebra do milho safrinha</span><b style="color:${milhoFalha > 0.2 ? "var(--seca)" : milhoFalha > 0.08 ? "var(--palha)" : "var(--broto)"}">${pct(milhoFalha)} dos anos</b>`}
           <span>Irrigação</span><b>${S.prefs.irrigado ? "sim (informado)" : "não informado"}</b></div>
           ${sazonalSmap(ag.sazonal)}
           <div class="fonte"><span>NASA SMAP L4 (9 km, ${ag.inicio} a ${ag.fim}) · quebra = produtividade relativa &lt; 80% no balanço hídrico FAO-56 com o solo deste talhão</span><span class="conf media">modelo</span></div></div>
@@ -470,7 +475,11 @@
     $$(".confirma select").forEach((s) => { s.value = S.atual[+s.dataset.ano]; s.onchange = () => { S.atual[+s.dataset.ano] = s.value; S.atualConfirmada = true; S.fixas = null; S.res = null; $("#confirmar").textContent = "✓ Confirmada"; $("#confirmar").classList.add("on"); }; });
     $("#confirmar").onclick = () => { S.atualConfirmada = true; $("#confirmar").textContent = "✓ Confirmada"; $("#confirmar").classList.add("on"); };
     $$(".ponto-ndvi").forEach((p) => (p.onclick = () => { verNdvi(+p.dataset.i); }));
-    if (UA && UA.bloqueio && !S.forcar) {
+    if (!so) {
+      rodape(`<button class="btn ouro grande" id="redesenhar">Redesenhar o talhão sobre a área agrícola</button>`);
+      $("#redesenhar").onclick = () => { irPara("talhao"); alternarCamada("uso", true); };
+      S.alcancado.delete("prefs"); renderPassos();
+    } else if (UA && UA.bloqueio && !S.forcar) {
       rodape(`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button class="btn grande" id="redesenhar">Redesenhar o talhão</button><button class="btn grande" id="forcar" style="border-color:var(--seca);color:#F2A08A">Analisar mesmo assim</button></div>`);
       $("#redesenhar").onclick = () => { irPara("talhao"); alternarCamada("uso", true); };
       $("#forcar").onclick = () => { S.forcar = true; irPara("prefs"); };
@@ -527,7 +536,7 @@
     { id: "renda", nome: "Rentabilidade relativa", cor: "#E9C46A", ico: "renda" },
   ];
   function renderPrefs() {
-    if (!S.raiox) { irPara("talhao"); return; }
+    if (!S.raiox || !S.raiox.solo) { irPara(S.raiox ? "raiox" : "talhao"); return; }
     const P = S.prefs;
     $("#painel-corpo").innerHTML = `<section>
       <div class="sobre">Etapa 4 · Preferências</div>
@@ -593,7 +602,7 @@
     return r;
   }
   function renderRotacoes() {
-    if (!S.raiox) { irPara("talhao"); return; }
+    if (!S.raiox || !S.raiox.solo) { irPara(S.raiox ? "raiox" : "talhao"); return; }
     calcular();
     const cl = S.raiox.clima;
     const analogos = R.rotacao.anosAnalise(C, { elNino: true });

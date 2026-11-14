@@ -158,11 +158,26 @@
       if (g.areia[i] === 255 || g.argila[i] === 255) continue;
       a += g.areia[i]; r += g.argila[i]; c += g.carbono[i] / 4; k++;
     }
-    if (!k) return null;
+    let vizinho = null;
+    if (!k) {
+      // SoilGrids não estima solo sob cidades e água: usa a célula válida mais próxima, avisando a distância
+      const G2 = regiao(), [W, , , N] = G2.bbox, xs = anel.map((q) => q[0]), ys = anel.map((q) => q[1]);
+      const cx = (Math.min(...xs) + Math.max(...xs)) / 2, cy = (Math.min(...ys) + Math.max(...ys)) / 2;
+      let melhor = null;
+      for (let i = 0; i < g.w * g.h; i++) {
+        if (g.areia[i] === 255 || g.argila[i] === 255) continue;
+        const lon = W + ((i % g.w) + 0.5) * g.dx, lat = N - (Math.floor(i / g.w) + 0.5) * g.dx;
+        const d = Math.hypot((lon - cx) * Math.cos((cy * Math.PI) / 180), lat - cy) * 111.32;
+        if (!melhor || d < melhor.d) melhor = { i, d };
+      }
+      if (!melhor) return null;
+      a = g.areia[melhor.i]; r = g.argila[melhor.i]; c = g.carbono[melhor.i] / 4; k = 1;
+      vizinho = { distanciaKm: melhor.d };
+    }
     a /= k; r /= k; c /= k;
     const { cc, pmp } = saxtonRawls(a, r, c);
     return { areia: a, argila: r, carbono: c, textura: classeTextura(a, r), cc, pmp, cad: (cc - pmp) * 1000,
-             celulas: idx.length, aproximado, resolucao: "250 m", fonte: g.fonte };
+             celulas: vizinho ? 0 : idx.length, aproximado, vizinho, resolucao: "250 m", fonte: g.fonte };
   }
   function relevo(anel) {
     const G = regiao(), g = G.relevo, { idx, aproximado } = celulas(anel, g);

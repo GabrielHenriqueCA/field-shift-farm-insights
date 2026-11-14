@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/img/rotare-hero-banner.jpg" alt="Rotare - NASA Space Apps Challenge 2026" width="100%" style="border-radius: 12px; margin-bottom: 20px;" />
+<img src="assets/img/rotare-logo-horizontal.png" alt="Rotare - Crop rotations tested against the climate" width="100%" />
 
 # 🌱 Rotare
 
@@ -12,7 +12,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-3DBE7A)](LICENSE)
 [![NASA Space Apps 2026](https://img.shields.io/badge/NASA%20Space%20Apps-2026-E9C46A)](https://www.spaceappschallenge.org/)
 [![Data Sources](https://img.shields.io/badge/Open%20Data-13%20Sources-E76F51)](#-nasa--satellite-data)
-[![Tests](https://img.shields.io/badge/Tests-18%20Passing-3DBE7A)](#-getting-started)
+[![Tests](https://img.shields.io/badge/Tests-19%20Passing-3DBE7A)](#-getting-started)
 
 **A decision-support tool that helps farmers compare three-year crop rotations using NASA satellite data, a deterministic FAO-based engine, and an interactive satellite map.**
 
@@ -85,7 +85,7 @@ Designed in accordance with the project dossier, each color serves a direct sema
 - 📊 **Multi-criteria ranking** — Pareto-front scoring of three-year rotation sequences across soil health, climate risk, water balance and relative return, weighted by farmer priorities
 - 🗺️ **Interactive satellite map** — MapLibre globe with Esri imagery, NASA GIBS HLS layers, polygon editor (draw, edit, drag vertices), and analysis overlays (NDVI, slope, risk zones)
 - 🔄 **Fully reproducible** — one command collects all 13 open sources for any coordinate; the app reads only the bundled data, so no API is called during the demo
-- 🧪 **18 deterministic tests** — engine, geodesy, ranking, explainability and data integrity validated by automated tests (`node --test`)
+- 🧪 **19 deterministic tests** — engine, geodesy, ranking, explainability and data integrity validated by automated tests (`node --test`)
 
 ---
 
@@ -94,10 +94,23 @@ Designed in accordance with the project dossier, each color serves a direct sema
 **Journey:** Coordinate → Farm on satellite → Draw the field → X-Ray analysis → Set priorities → 3-year rotations → Climate simulator → Smart map.
 
 <div align="center">
-  <img src="assets/img/rotare-dashboard-preview.jpg" alt="Rotare Decision Support Platform Interface" width="100%" style="border-radius: 12px; margin: 15px 0; border: 1px solid rgba(76, 141, 246, 0.2);" />
+  <img src="assets/img/app/05-rotacoes.jpg" alt="Rotare: three-year rotations ranked for the Talhão Sede field, with the climate simulator" width="100%" />
 </div>
 
-*Concept mockup generated with AI to illustrate the interface design (watermarked). The working app runs at `http://127.0.0.1:8765` — see [Getting Started](#-getting-started).*
+*Real screenshots of the working app (Talhão Sede, Sorriso, MT, real data). Nothing below is a mockup.*
+
+| | |
+| --- | --- |
+| <img src="assets/img/app/01-globo.jpg" alt="Step 1: search by place name or coordinate on the satellite globe" /> | <img src="assets/img/app/02-talhao.jpg" alt="Step 2: draw the field; geodesic area updates live" /> |
+| **1. Location.** Search a town, farm or `lat, lon`; the globe flies there. | **2. Field.** Rectangle, polygon or free vertices; geodesic area (WGS84) updates live. |
+| <img src="assets/img/app/03-raio-x.jpg" alt="Step 3: X-ray with land cover and 10 years of NDVI history" /> | <img src="assets/img/app/04-prioridades.jpg" alt="Step 4: priorities from free text turned into weights" /> |
+| **3. X-ray.** What is inside the polygon today (ESA WorldCover 10 m), 10+ seasons of MODIS NDVI and the inferred crop history. | **4. Priorities.** Free text becomes weights that the farmer can adjust. |
+| <img src="assets/img/app/06-el-nino.jpg" alt="Step 5: El Niño mode reorders the ranking and shows each analog year" /> | <img src="assets/img/app/07-explicacao.jpg" alt="Explainability: why, benefits, risks and what we don't know" /> |
+| **5. El Niño mode.** The ranking is recomputed over the 6 strong El Niño years, showing each analog year (not an average). | **Explainability.** Why / Benefits / Risks / What we don't know, built only from engine numbers. |
+| <img src="assets/img/app/08-mapa.jpg" alt="Step 6: smart map with climate risk and attention areas" /> | <img src="assets/img/app/09-area-urbana-bloqueada.jpg" alt="Any location: an urban polygon in Campinas is flagged as 99 percent buildings and blocked" /> |
+| **6. Smart map.** Climate risk, slope and attention areas on the field. | **Any location, honest.** Live data for a polygon in downtown Campinas: 99% buildings, so the app refuses to recommend rotations. |
+
+<p align="center"><img src="assets/img/app/10-celular.jpg" alt="Mobile layout with bottom sheet" width="320" /></p>
 
 ---
 
@@ -180,7 +193,7 @@ flowchart TD
 
 ```
 rotare/
-├── assets/img/      # Team brand assets and AI-generated illustrations (watermarked)
+├── assets/img/      # Team brand assets, Rotare logo and real app screenshots (app/)
 ├── coleta/          # Data collection pipeline (13 open sources, single command)
 │   ├── coleta_rotare.py    # Main API ingestion script
 │   ├── coletar.ps1         # Windows PowerShell launcher (auto venv setup)
@@ -523,7 +536,7 @@ All CSV files use UTF-8 encoding, comma (`,`) as column delimiter, and dot (`.`)
 - **No data values were generated by AI.** Every rainfall total, temperature, soil property, yield and risk value comes from the NASA and partner open data documented in [REFERENCES.md](REFERENCES.md), processed by the deterministic code in this repository.
 
 ### 4. Images
-- The banner and the interface mockup are **AI-generated illustrations** and carry a visible watermark. The mockup does not show real data.
+- The README images are real screenshots of the working app (`assets/img/app/`). The Rotare logo was vectorised with AI help from the team's own design.
 
 > No NASA logo, flag, or official mission identifier is altered or misused in this project.
 

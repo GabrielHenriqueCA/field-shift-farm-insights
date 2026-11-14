@@ -20,7 +20,25 @@ The app is 100% static (HTML, CSS, JS, MapLibre GL, Turf.js) and ready for zero-
 1. **Option A (Default / Import repo):** Vercel will automatically read the root [`vercel.json`](../vercel.json) and serve the `app/` directory seamlessly.
 2. **Option B (Root Directory = `app`):** In Vercel Project Settings, set **Root Directory** to `app`.
 
-Tests (deterministic engine, 18 tests): `node --test app/tests/motor.test.cjs` from the `rotare` folder.
+Tests (deterministic engine, 19 tests): `node --test app/tests/motor.test.cjs` from the `rotare` folder.
+
+## Any location (live data)
+
+Outside the pre-processed Sorriso box, the app asks the local server for the same data, live:
+MODIS NDVI, ESA WorldCover (10 m, flags houses, water and trees inside the polygon), MapBiomas (Brazil only),
+SoilGrids, SRTM, CHIRPS daily rain, NASA POWER temperature, IMERG and SMAP. First query ≈ 20 s, then cached
+in `app/data/cache/`.
+
+```powershell
+cd rotare/app
+..\..\codigo
+otare-coletav2\coleta\.venv\Scripts\python servidor.py   # needs earthengine-api + EE login
+# open http://127.0.0.1:8765
+```
+
+If the polygon is mostly buildings, water or forest, the X-ray says so and the rotation step is blocked
+(the farmer can redraw, or explicitly analyse anyway when there is soil data). On a static host (Vercel) there is
+no server, so only the Sorriso demo region is analysed and the app explains why.
 
 ## Structure
 

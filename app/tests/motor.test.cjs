@@ -163,3 +163,10 @@ test("explicação: só usa números do motor (o percentual de risco citado bate
   assert.ok(e.porque.includes(`${Math.round(c.metricas.risco * 100)}%`));
   assert.ok(e.beneficios.length && e.riscos.length && e.naoSabemos.length);
 });
+
+test("uso do solo (WorldCover): talhão Sede é agrícola e não gera bloqueio", () => {
+  const u = R.zonal.usoAtual(T.find((x) => x.id === "sede").geometria);
+  assert.ok(u && u.agricola > 0.8, `agrícola ${u && u.agricola}`);
+  assert.equal(u.bloqueio, false);
+  assert.ok(Math.abs(u.classes.reduce((s, c) => s + c.fracao, 0) - 1) < 1e-9);
+});
