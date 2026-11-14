@@ -434,7 +434,7 @@ All CSV files use UTF-8 encoding, comma (`,`) as column delimiter, and dot (`.`)
 |:---|:---|:---|
 | [**Gabriel Henrique**](https://github.com/GabrielHenriqueCA) | Project Owner & Solutions Architect | Strategy & Architecture |
 | **Alan Nascimento** | Senior Data Specialist | Data Engineering |
-| **Marcelo** | Data Scientist & Agro-Climatologist | Climate & Soil Science |
+| **Marcelo** | Data Scientist & Agro-Climatologist | Data Engineering |
 | **Werlem** | Full-Stack Software Engineer | Software Engineering |
 
 ---
