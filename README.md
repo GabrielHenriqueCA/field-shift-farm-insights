@@ -367,6 +367,10 @@ Each field directory under `data/<field>/` contains standardized, ready-to-use a
 
 <div align="center">
 
+<img src="assets/img/datanauts-banner.png" alt="Datanauts Brasil" width="400" style="margin-bottom: 16px;" />
+
+<br/>
+
 *These data were obtained from the NASA Langley Research Center (LaRC) POWER Project*  
 *funded through the NASA Earth Science/Applied Science Program.*
 
