@@ -284,23 +284,109 @@ python coleta_rotare.py --lat -17.79 --lon -50.92 --nome rio_verde --saida ../da
 
 ## 📂 Data Output & Validation Reference
 
-Each field directory under `data/<field>/` contains standardized, ready-to-use artifacts:
+Each field directory under `data/<field>/` contains standardized, ready-to-use artifacts in both high-performance Parquet format and human-readable CSV format:
 
 | File | Description | Format |
 |:---|:---|:---:|
-| `base_diaria.parquet` | Daily series: weather, Hargreaves ET₀, frost (≤ 2 °C), heat (≥ 35 °C), extreme rain (≥ 50 mm), NDVI, soil moisture, crop year, ENSO phase | Parquet / CSV |
-| `resumo_safras.parquet` | Annual crop-year summary (Jul–Jun): rainfall (POWER, IMERG, CHIRPS), ET₀, water deficit, extreme temperature days, ENSO classification | Parquet / CSV |
-| `zarc.parquet` | Official Brazilian agro-climatic planting risk (20/30/40 %) per crop, cycle, soil class, and 10-day period | Parquet / CSV |
-| `aptidao_ecocrop.parquet` | Indicative climate suitability index (0–1) across 18 crops per planting month | Parquet / CSV |
+| `base_diaria.parquet` / `.csv` | Daily series: weather, Hargreaves ET₀, frost (≤ 2 °C), heat (≥ 35 °C), extreme rain (≥ 50 mm), NDVI, soil moisture, crop year, ENSO phase | Parquet / CSV |
+| `resumo_safras.parquet` / `.csv` | Annual crop-year summary (Jul–Jun): rainfall (POWER, IMERG, CHIRPS), ET₀, water deficit, extreme temperature days, ENSO classification | Parquet / CSV |
+| `zarc.parquet` / `.csv` | Official Brazilian agro-climatic planting risk (20/30/40 %) per crop, cycle, soil class, and 10-day period | Parquet / CSV |
+| `aptidao_ecocrop.parquet` / `.csv` | Indicative climate suitability index (0–1) across 18 crops per planting month | Parquet / CSV |
 | `chirps.parquet` / `chirps_safras.parquet` | Daily CHIRPS rainfall since 1981 and crop-year cumulative series | Parquet / CSV |
-| `sidra_pam.parquet` | Official municipal planted area, production, and yield per crop since 1987 (IBGE PAM) | Parquet / CSV |
+| `sidra_pam.parquet` / `.csv` | Official municipal planted area, production, and yield per crop since 1987 (IBGE PAM) | Parquet / CSV |
 | `manifesto.json` | Complete provenance log with exact API timestamps, bounding coordinates, and citation list | JSON |
-| `csv/` | Full CSV copies of every single table with comprehensive metadata | Directory |
+| `csv/` | Directory containing full CSV copies of every table + dedicated README | Directory |
+
+---
+
+### 📖 CSV Data Dictionary (Dicionário de Dados)
+
+All CSV files use UTF-8 encoding, comma (`,`) as column delimiter, and dot (`.`) as decimal separator. Direct access: [`data/sorriso/csv/`](data/sorriso/csv/).
+
+#### 1. `base_diaria.csv` — Daily Agricultural & Environmental Series
+*One record per day (4,383 days covering 2014–2025)*
+
+| Column | Description | Unit / Source |
+|:---|:---|:---:|
+| `data` | Observation date (`YYYY-MM-DD`) | Calendar Date |
+| `temp_media_c` | Mean air temperature at 2 m | °C (NASA POWER) |
+| `temp_max_c` | Maximum daily air temperature at 2 m | °C (NASA POWER) |
+| `temp_min_c` | Minimum daily air temperature at 2 m | °C (NASA POWER) |
+| `chuva_power_mm` | Daily modeled rainfall (underestimates in tropical regions; use IMERG for totals) | mm/day (NASA POWER) |
+| `umidade_rel_pct` | Relative air humidity at 2 m | % (NASA POWER) |
+| `radiacao_mj_m2` | Surface all-sky incoming solar radiation | MJ/m²/day (NASA POWER) |
+| `et0_hargreaves_mm` | Reference evapotranspiration calculated via Hargreaves equation (FAO-56) | mm/day (Derived) |
+| `geada` | Frost risk occurrence indicator (`Tmin ≤ 2 °C`) | Boolean (`True`/`False`) |
+| `calor_extremo` | Extreme heat stress indicator (`Tmax ≥ 35 °C`) | Boolean (`True`/`False`) |
+| `chuva_extrema` | Extreme precipitation event indicator (`Rainfall ≥ 50 mm`) | Boolean (`True`/`False`) |
+| `ano_safra` | Brazilian agricultural crop year (e.g., `2023` = July 2023 to June 2024) | Year Integer |
+| `oni_max` / `oni_min` | Peak and trough Oceanic Niño Index anomaly between August and March | °C Anomaly (NOAA CPC) |
+| `enso_safra` | ENSO classification: `el_nino_forte` (ONI ≥ 1.5), `el_nino_fraco_moderado`, `la_nina`, `neutro` | Category |
+
+#### 2. `resumo_safras.csv` — Crop-Year Agronomic Balance
+*One summary row per agricultural year (July to June)*
+
+| Column | Description | Unit / Notes |
+|:---|:---|:---:|
+| `ano_safra` | Agricultural crop year label | YYYY/YYYY |
+| `chuva_power_mm` | Modeled cumulative rainfall for the crop year | mm (NASA POWER) |
+| `chuva_imerg_mm` | Satellite-observed cumulative rainfall for the crop year (**preferred source**) | mm (GPM IMERG V07) |
+| `et0_hargreaves_mm` | Total atmospheric water demand (cumulative reference evapotranspiration) | mm (FAO-56) |
+| `deficit_hidrico_mm` | Water deficit from POWER (`ET₀ - Rainfall`); positive value = water deficit | mm |
+| `deficit_hidrico_imerg_mm` | Satellite-verified water deficit using IMERG | mm |
+| `geada` / `calor_extremo` / `chuva_extrema` | Total count of extreme weather days in that crop year | Days (Count) |
+| `dias` / `safra_completa` | Number of recorded days and completeness flag (`True` for full comparisons) | Integer / Boolean |
+| `meses_imerg` | Number of validated IMERG months available (12 = complete season) | Months (Count) |
+
+#### 3. `zarc.csv` — Official MAPA Agricultural Climate Risk Zoning
+*19,767 risk decêndio (10-day period) records from Brazil's Ministry of Agriculture*
+
+| Column | Description | Values / Examples |
+|:---|:---|:---|
+| `safra` | Agricultural crop season | `2016/2017` to `2026/2027` |
+| `cultura` | Target crop species | `Soja`, `Milho 2ª Safra`, `Algodão`, `Sorgo`, etc. |
+| `ciclo` | Crop maturation group | `grupo_I` to `grupo_VI` (early to late maturing) |
+| `solo` | Soil texture classification | `arenoso`, `textura_media`, `argiloso`, or AD1–AD6 |
+| `manejo` | Farm management system | `Sequeiro` (rainfed) or `Irrigado` (irrigated) |
+| `decendio` | 10-day planting window (1 = Jan 1–10 ... 36 = Dec 21–31) | 1 to 36 |
+| `mes` / `dia_inicio` | Calendar month and starting day of the decêndio | Integer |
+| `risco_pct` | Official climate risk tier | **20%**, **30%**, or **40%** (unlisted = unrecommended) |
+
+#### 4. `chirps_safras.csv` — Long-Term Multi-Decade Rainfall Series
+*46 crop years of historical rainfall since 1981*
+
+| Column | Description |
+|:---|:---|
+| `chuva_chirps_mm` | Cumulative crop-year precipitation (July to June) from satellite + station CHIRPS |
+| `dias` / `safra_completa` | Season day count and validation flag |
+| `oni_max`, `oni_min`, `enso_safra` | Historical ENSO classification (includes 1997/98 strong El Niño, pre-dating IMERG) |
+
+#### 5. `sidra_pam.csv` — Municipal Ground-Truth Production & Yields (IBGE PAM)
+*Official historical municipality-scale agricultural yields (1987–2025) used for risk backtesting*
+
+| Column | Description | Unit |
+|:---|:---|:---:|
+| `produto` | Agricultural commodity (`soja`, `milho`, `algodao_herbaceo`, `sorgo`, `feijao`, etc.) | Commodity |
+| `ano_colheita` / `ano_safra` | Harvest year and corresponding crop year | Year |
+| `area_plantada_ha` / `area_colhida_ha` | Municipal planted and harvested surface area | Hectares (ha) |
+| `producao_t` | Total municipal harvest volume | Metric Tons (t) |
+| `rendimento_kg_ha` / `rendimento_sc_ha` | Average municipal crop yield | kg/ha / 60 kg bags/ha |
 
 <details>
-<summary><b>View individual source files in <code>data/</code></b></summary>
+<summary><b>6. Detailed Reference Tables by Individual Source</b></summary>
 
-`power` · `imerg` · `ndvi_modis` · `ndvi_hls` · `smap_l4` · `solo` · `relevo` · `oni` · `mapbiomas` · `calendario_fao` — cleaned and normalized, one file per source.
+| CSV File | Source | Parameters & Metrics |
+|:---|:---|:---|
+| `power.csv` | NASA POWER API | Raw daily solar irradiance, temperatures, humidity, and atmospheric pressure |
+| `imerg.csv` | NASA GES DISC | Monthly calibrated satellite rainfall (mm/month) from Jan 2014 to Sep 2025 |
+| `chirps.csv` | UCSB Climate Hazards | High-resolution (~5 km) daily precipitation grid from 1981 to 2025 |
+| `oni.csv` | NOAA Climate Prediction | 3-month running mean SST anomalies in the Niño 3.4 region since 1950 |
+| `solo.csv` | ISRIC SoilGrids 2.0 | Clay, sand, silt (%), SOC (g/kg), pH, bulk density, CEC, and nitrogen across 5 depths (0–100 cm) |
+| `relevo.csv` | NASA SRTM (OpenTopodata) | Altitude (m), slope percentage (%), and topographic erosion hazard classification |
+| `mapbiomas.csv` | MapBiomas Collection 9 | Annual land-use and land-cover classification from 1985 to 2023 (Class 39 = Soybean) |
+| `ecocrop_parametros.csv` | FAO ECOCROP | Thermal/rainfall thresholds (`TOPMN`, `TOPMX`, `TMIN`, `TMAX`, `ROPMN`, `ROPMX`), pH range, and cycle days for 18 crops |
+| `aptidao_ecocrop.csv` | FAO ECOCROP Model | Indicative agro-climatic suitability index (0 to 1) per crop and planting month |
+| `calendario_fao.csv` | FAO Crop Calendar | Reference agronomic sowing and harvesting calendar windows for Brazil |
 
 </details>
 
