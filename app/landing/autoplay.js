@@ -5,7 +5,7 @@
   window.createRotareTour=({stages,reducedMotion,onRunning,onComplete})=>{
     const root=document.documentElement,main=document.querySelector('main');
     const sections=[...main.children].filter(node=>node.tagName==='SECTION');
-    let index=0,running=false,transitioning=false,completed=false,suspended=false;
+    let index=0,running=false,transitioning=false,completed=false,suspended=false,paused=false;
     let elapsed=0,lastTime=0,frame=0,manualUntil=0,touchY=null,pendingDirection=0,finishing=null;
     let wheelDistance=0,lastWheelAt=0,wheelDirection=0;
     const ease=p=>p*p*(3-2*p),lessMotion=()=>typeof reducedMotion==='object'?reducedMotion.matches:reducedMotion;
@@ -13,7 +13,7 @@
     const current=()=>stages[index];
     function sync(){
       root.classList.toggle('tour-running',running);
-      root.dataset.presentationState=completed?'complete':running?'running':'ready';
+      root.dataset.presentationState=completed?'complete':paused?'paused':running?'running':'ready';
       root.dataset.presentationChapter=String(index+1);
     }
     function apply(next){
@@ -55,7 +55,7 @@
     function tick(now){
       frame=0;if(!running||transitioning||document.hidden)return;
       const delta=lastTime?Math.max(0,now-lastTime):0;lastTime=now;
-      if(!suspended){
+      if(!suspended&&(!paused||finishing)){
         if(finishing){
           finishing.time+=delta;
           const progress=Math.min(1,finishing.time/finishing.duration);
@@ -106,6 +106,6 @@
     document.addEventListener('visibilitychange',()=>{lastTime=0;if(document.hidden){cancelAnimationFrame(frame);frame=0;}else schedule();});
     window.addEventListener('pagehide',()=>{running=false;pendingDirection=0;cancelAnimationFrame(frame);frame=0;},{once:true});
     apply(0);root.dataset.deckTransition='idle';
-    return {start:()=>{running=true;lastTime=0;sync();onRunning?.(true);schedule();},defer,setSuspended:value=>{suspended=value;lastTime=0;}};
+    return {start:()=>{running=true;lastTime=0;sync();onRunning?.(true);schedule();},defer,setSuspended:value=>{suspended=value;lastTime=0;},setPaused:value=>{paused=!!value;lastTime=0;sync();schedule();},get paused(){return paused;}};
   };
 })();

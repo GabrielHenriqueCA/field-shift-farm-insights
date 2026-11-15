@@ -15,11 +15,12 @@
     const heading=scene.querySelector('.flight-title'),subtitle=scene.querySelector('.flight-subtitle'),eyebrow=scene.querySelector('.flight-eyebrow');
     const ground=scene.querySelector('.flight-ground-image'),credit=scene.querySelector('.flight-credit');
     const stats=window.ROTARE_LANDING_STATS;
-    const number=(value,digits=1)=>Number(value).toLocaleString('pt-BR',{minimumFractionDigits:digits,maximumFractionDigits:digits});
+    const number=(value,digits=1)=>Number(value).toLocaleString('en-US',{minimumFractionDigits:digits,maximumFractionDigits:digits});
     if(stats){scene.querySelector('.flight-ndvi').textContent=number(stats.ndvi.find(item=>item.year===2024).mean,2);scene.querySelector('.flight-clay').textContent=number(stats.clayMean)+'%';scene.querySelector('.flight-slope').textContent=number(stats.slopeMean)+'%';}
     const background=[...document.querySelectorAll('.site-header,main,.site-footer,.skip-link')];
     const previousInert=background.map(element=>element.inert);
     let resolveFinished;const finished=new Promise(resolve=>{resolveFinished=resolve;});
+    let paused=false;const SLOW=27/29; // intro 2 s mais longa
     let elapsed=0,previousTime=0,lastPaint=0,raf=0,ended=false,width=1,height=1,currentPhase=-1;
     let scrub=null,queuedDirection=0,touchY=null,wheelDistance=0,lastWheelAt=0,wheelDirection=0;
     let active=true,disposeTimer=0;
@@ -27,10 +28,10 @@
     const smooth=x=>{x=clamp(x);return x*x*(3-2*x);};
     const segment=(t,a,b)=>smooth((t-a)/(b-a));
     const phases=[
-      {start:0,end:5,scene:'preparacao',label:'DATANAUTS BRASIL · TERRA + ÓRBITA',title:'A próxima safra começa com outro olhar.',text:'Uma viagem do espaço ao que importa no seu talhão.'},
-      {start:5,end:14,scene:'orbita',label:'OBSERVAÇÃO DA TERRA',title:'Um planeta. Muitas possibilidades.',text:'Clima, solo e vegetação contam partes da mesma história.'},
-      {start:14,end:20,scene:'aproximacao',label:'DO ESPAÇO AO CAMPO',title:'Vamos olhar mais de perto.',text:'Nossa viagem encontra o Cerrado. E se aproxima da sua próxima decisão.'},
-      {start:20,end:27,scene:'sorriso',label:'SORRISO · MATO GROSSO',title:'Cada talhão tem um futuro a cultivar.',text:'Explore o histórico. Compare rotações. Decida o próximo passo com o Rotare.'}
+      {start:0,end:5,scene:'preparacao',label:'NASA SPACE APPS 2026 · FIELD SHIFT',title:'The next harvest starts with a new view.',text:'A journey from space to what matters in your field.'},
+      {start:5,end:14,scene:'orbita',label:'EARTH OBSERVATION',title:'One planet. Many possibilities.',text:'Climate, soil and vegetation each tell part of the same story.'},
+      {start:14,end:20,scene:'aproximacao',label:'FROM SPACE TO THE FIELD',title:'Let\'s take a closer look.',text:'Our journey reaches the Cerrado, and gets closer to your next decision.'},
+      {start:20,end:27,scene:'sorriso',label:'SORRISO · MATO GROSSO',title:'Every field has a future to grow.',text:'Explore the history. Compare rotations. Choose the next step with Rotare.'}
     ];
     let seed=793;
     const random=()=>{seed=(seed*16807)%2147483647;return (seed-1)/2147483646;};
@@ -97,7 +98,7 @@
         scrub.time+=delta;const progress=clamp(scrub.time/scrub.duration);
         elapsed=mix(scrub.from,scrub.to,smooth(progress));
         if(progress===1){scrub=null;if(queuedDirection&&elapsed<27000){const direction=queuedDirection;queuedDirection=0;seekPhase(direction);}else queuedDirection=0;}
-      }else elapsed+=delta;
+      }else if(!paused)elapsed+=delta*SLOW;
       if(now-lastPaint>=32){paint(elapsed/1000,Math.min((now-lastPaint)/1000,.1));lastPaint=now;}
       if(elapsed>=27000){finish();return;}
       if(elapsed>6500&&globe.ready===false){finish();return;}
@@ -155,6 +156,6 @@
     background.forEach(element=>{element.inert=true;});root.classList.add('intro-playing');root.classList.remove('intro-pending');root.dataset.introState='playing';
     onActive?.(true);size();paint(0,0);
     window.addEventListener('resize',size);window.addEventListener('keydown',keydown,true);window.addEventListener('wheel',wheel,{capture:true,passive:false});window.addEventListener('touchstart',touchstart,{capture:true,passive:true});window.addEventListener('touchend',touchend,{capture:true,passive:true});window.addEventListener('pagehide',pagehide);document.addEventListener('visibilitychange',visibility);motionPreference.addEventListener('change',preferenceChanged);
-    schedule();return {finished};
+    schedule();return {finished,setPaused:value=>{paused=!!value&&!ended;previousTime=0;schedule();},get active(){return active;}};
   };
 })();

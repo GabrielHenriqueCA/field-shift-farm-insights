@@ -34,9 +34,9 @@
   }
 
   const layers = {
-    vegetacao: { title: 'O verde também conta histórias.', description: 'O NDVI indica o vigor da vegetação. A variação ao longo do tempo ajuda a reconhecer ciclos de cultivo; a cultura inferida precisa ser confirmada pelo agricultor.', source: 'NASA MODIS · 250 m', badgeSource: 'NASA MODIS', badge: 'Vegetação vista do espaço', min: 'Menor vigor', max: 'Maior vigor', gradient: 'linear-gradient(90deg,#b88445,#d7c06b,#8cad62,#367d55,#163f38)', note: 'Máximo mensal de fevereiro. Mesma área em todos os anos. Resolução de aproximadamente 250 m, sem detalhe de linhas de plantio.' },
-    solo: { title: 'A base de toda próxima safra.', description: 'A proporção de argila ajuda a caracterizar o solo e entra na estimativa de retenção de água. Este mapa é uma estimativa regional e pode ser complementado por um laudo de campo.', source: 'ISRIC SoilGrids 2.0 · 250 m', badgeSource: 'ISRIC SOILGRIDS', badge: 'Teor de argila · camada de 0–30 cm', min: '0% de argila', max: '70% de argila', image: 'solo.webp', gradient: 'linear-gradient(90deg,#d9cb9b,#ae8e57,#8b5e34,#583a2d)', note: 'Média ponderada de 0–30 cm. Estimativa espacial do SoilGrids 2.0, sem análise laboratorial do talhão. As cores usam uma escala fixa de 0 a 70% de argila.' },
-    relevo: { title: 'Cada inclinação muda o contexto.', description: 'A declividade mostra como o terreno se inclina. Com a cobertura do solo, ela ajuda a discutir escoamento e suscetibilidade à erosão nas alternativas de manejo.', source: 'NASA SRTM GL1 v003 · grade de ~90 m', badgeSource: 'NASA SRTM', badge: 'Declividade do terreno', min: '0% · mais plano', max: '10% ou mais', image: 'relevo.webp', gradient: 'linear-gradient(90deg,#283e43,#738676,#d2c68b,#e9c46a,#b16c4f)', note: 'SRTM original de 30 m agregado na preparação para aproximadamente 90 m. A declividade é codificada em % no pacote do projeto; não equivale a um levantamento topográfico.' }
+    vegetacao: { title: 'Green tells a story too.', description: 'NDVI indicates vegetation vigor. Its variation over time helps recognize crop cycles; the inferred crop must be confirmed by the farmer.', source: 'NASA MODIS · 250 m', badgeSource: 'NASA MODIS', badge: 'Vegetation seen from space', min: 'Lower vigor', max: 'Higher vigor', gradient: 'linear-gradient(90deg,#b88445,#d7c06b,#8cad62,#367d55,#163f38)', note: 'February monthly maximum. Same area every year. About 250 m resolution, without planting-row detail.' },
+    solo: { title: 'The base of every next crop.', description: 'Clay content helps characterize the soil and feeds the water-retention estimate. This map is a regional estimate and can be complemented by a field soil test.', source: 'ISRIC SoilGrids 2.0 · 250 m', badgeSource: 'ISRIC SOILGRIDS', badge: 'Clay content · 0–30 cm layer', min: '0% clay', max: '70% clay', image: 'solo.webp', gradient: 'linear-gradient(90deg,#d9cb9b,#ae8e57,#8b5e34,#583a2d)', note: 'Weighted average over 0–30 cm. Spatial estimate from SoilGrids 2.0, without a lab analysis of the field. Colors use a fixed 0 to 70% clay scale.' },
+    relevo: { title: 'Every slope changes the context.', description: 'Slope shows how the terrain tilts. Together with ground cover, it helps discuss runoff and erosion risk across management options.', source: 'NASA SRTM GL1 v003 · ~90 m grid', badgeSource: 'NASA SRTM', badge: 'Terrain slope', min: '0% · flattest', max: '10% or more', image: 'relevo.webp', gradient: 'linear-gradient(90deg,#283e43,#738676,#d2c68b,#e9c46a,#b16c4f)', note: 'Original 30 m SRTM aggregated to about 90 m during preparation. Slope is encoded in % in the project package; it is not a topographic survey.' }
   };
   const layerTabs = $$('.layer-tab');
   let selectedLayer = 'vegetacao';
@@ -48,7 +48,7 @@
     void element.offsetWidth;
     element.classList.add(className);
   }
-  function numberText(value,digits){return Number(value).toLocaleString('pt-BR',{minimumFractionDigits:digits,maximumFractionDigits:digits});}
+  function numberText(value,digits){return Number(value).toLocaleString('en-US',{minimumFractionDigits:digits,maximumFractionDigits:digits});}
   function setSignalNumber(element,value,digits){
     if(!element||element.dataset.target===String(value))return;
     const previous=Number(element.dataset.current);
@@ -71,7 +71,7 @@
     if(!regional)return;
     const year=Number(yearInput.value),snapshot=regional.ndvi.find(item=>item.year===year);
     setSignalNumber($('#signal-ndvi'),snapshot.mean,2);setSignalNumber($('#signal-clay'),regional.clayMean,1);setSignalNumber($('#signal-slope'),regional.slopeMean,1);
-    $('#signal-date').textContent=`FEV. ${year}`;
+    $('#signal-date').textContent=`FEB ${year}`;
     const point=historyPoints.find(item=>item.year===year);
     $('.signal-chart-point').setAttribute('cx',point.x);$('.signal-chart-point').setAttribute('cy',point.y);
     $('.signal-chart-cursor').setAttribute('x1',point.x);$('.signal-chart-cursor').setAttribute('x2',point.x);
@@ -84,10 +84,10 @@
     const nextSource=asset(name);
     if(layerImage.src!==nextSource&&layerImage.complete){previousLayer.src=layerImage.src;replayAnimation(previousLayer,'is-crossfading');}
     layerImage.src = nextSource;
-    layerImage.alt = selectedLayer === 'vegetacao' ? `NDVI regional de Sorriso em fevereiro de ${year}, derivado de observações NASA MODIS.` : selectedLayer === 'solo' ? 'Mapa regional da proporção estimada de argila em Sorriso, derivado do SoilGrids 2.0.' : 'Mapa regional da declividade de Sorriso, derivado do NASA SRTM.';
+    layerImage.alt = selectedLayer === 'vegetacao' ? `Sorriso regional NDVI in February ${year}, derived from NASA MODIS observations.` : selectedLayer === 'solo' ? 'Regional map of estimated clay content in Sorriso, derived from SoilGrids 2.0.' : 'Regional slope map of Sorriso, derived from NASA SRTM.';
     $('#year-output').value = year;
     $('#year-output').textContent = year;
-    $('#map-badge-label').textContent = selectedLayer === 'vegetacao' ? `Vigor da vegetação · fev. ${year}` : layer.badge;
+    $('#map-badge-label').textContent = selectedLayer === 'vegetacao' ? `Vegetation vigor · Feb ${year}` : layer.badge;
     replayAnimation($('.map-image-area'), 'layer-switch');
     refreshSignals();
   }
@@ -201,7 +201,9 @@
   }
   const stages=[
     {id:'inicio',selector:'#inicio',duration:5000},
+    {id:'risco',selector:'#risco',duration:7000},
     {id:'missao',selector:'#missao',duration:5000},
+    {id:'caderno',selector:'#caderno',duration:6000},
     {id:'indicadores',selector:'#exploracao',duration:5000,onEnter:()=>{
       if(!reducedMotion.matches){$$('.signal-value>strong').forEach(element=>{element.dataset.current='0';delete element.dataset.target;});refreshSignals();}
     }},
@@ -210,13 +212,14 @@
       onEnter:()=>{if(year)yearInput.value=String(year);selectLayer(layerTabs.find(tab=>tab.dataset.layer===layer));}
     })),
     ...['talhao','historico','prioridades','rotacoes'].map((id,index)=>({id,selector:'#jornada',duration:5000,onEnter:()=>story.select(index)})),
+    {id:'resultado',selector:'#resultado',duration:7000},
     {id:'ciencia',selector:'#ciencia',duration:6000},
     {id:'encerramento',selector:'#encerramento',duration:3200,onFrame:paintHandoff}
   ];
   tour=window.createRotareTour({
     stages,reducedMotion,
     onRunning:running=>$('#layer-details').setAttribute('aria-live',running?'off':'polite'),
-    onComplete:()=>location.assign(platformURL)
+    onComplete:()=>{try{fadeTo(0,400);}catch(e){}location.assign(platformURL);}
   });
   const intro=window.createRotareIntro?.({asset,globeFactory:window.createRotareGlobe,reducedMotion:reducedMotion.matches,onActive:active=>{
     introPlaying=active;previousVisualTime=0;
@@ -224,4 +227,69 @@
   }});
   function begin(){document.documentElement.classList.remove('intro-pending');tour.start();}
   if(intro)intro.finished.then(begin);else begin();
+
+  // Trilha de fundo (Pixabay, Viacheslav Starostin). O navegador pode bloquear som automático:
+  // nesse caso o primeiro clique/tecla/toque liga o som (sem pausar) e o botão de som fica sempre visível.
+  const MUSIC_VOLUME=.32,MUSIC_DUCKED=.1;
+  const music=new Audio(new URL('landing/assets/rotare-ambient.mp3',location.href).href);
+  music.loop=true;music.preload='auto';music.volume=0;
+  let soundOn=true,musicStarted=false,fadeRaf=0;
+  try{if(localStorage.getItem('rotare.sound')==='off')soundOn=false;}catch(e){}
+  const soundButton=document.createElement('button');
+  soundButton.type='button';soundButton.className='sound-toggle';
+  document.body.appendChild(soundButton);
+  function fadeTo(target,ms=900){
+    cancelAnimationFrame(fadeRaf);const from=music.volume,t0=performance.now();
+    const step=now=>{const p=Math.min(1,(now-t0)/ms);music.volume=from+(target-from)*p*p*(3-2*p);
+      if(p<1)fadeRaf=requestAnimationFrame(step);else if(target===0)music.pause();};
+    fadeRaf=requestAnimationFrame(step);
+  }
+  function musicTarget(){return presentationPaused?MUSIC_DUCKED:MUSIC_VOLUME;}
+  function renderSound(){
+    const blocked=soundOn&&!musicStarted;
+    soundButton.dataset.state=!soundOn?'off':blocked?'blocked':'on';
+    soundButton.setAttribute('aria-pressed',String(soundOn&&musicStarted));
+    soundButton.innerHTML=`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/>${soundOn&&musicStarted?'<path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/>':'<path d="m16 9 5 6m0-6-5 6"/>'}</svg><span>${!soundOn?'Sound off':blocked?'Click for sound':'Sound on'}</span>`;
+    soundButton.setAttribute('aria-label',!soundOn?'Turn background music on':'Turn background music off');
+  }
+  function startMusic(){
+    if(!soundOn||musicStarted)return Promise.resolve(musicStarted);
+    return music.play().then(()=>{musicStarted=true;fadeTo(musicTarget(),2200);renderSound();return true;}).catch(()=>{renderSound();return false;});
+  }
+  soundButton.addEventListener('click',()=>{
+    if(!soundOn||!musicStarted){soundOn=true;startMusic();}
+    else{soundOn=false;musicStarted=false;fadeTo(0,500);}
+    try{localStorage.setItem('rotare.sound',soundOn?'on':'off');}catch(e){}
+    renderSound();
+  });
+  renderSound();startMusic();
+  ['keydown','touchstart','pointerdown'].forEach(type=>window.addEventListener(type,event=>{
+    if(event.target.closest?.('.sound-toggle'))return;startMusic();
+  },{capture:true,passive:true}));
+  window.addEventListener('pagehide',()=>{music.pause();});
+
+  // Toque/clique em qualquer área livre pausa e retoma (intro e cenas). Controles continuam funcionando normalmente.
+  const pauseBadge=document.createElement('div');
+  pauseBadge.className='pause-badge';pauseBadge.setAttribute('role','status');pauseBadge.setAttribute('aria-live','polite');pauseBadge.hidden=true;
+  pauseBadge.innerHTML='<span class="pause-icon" aria-hidden="true"><i></i><i></i></span><b>Paused</b><small>Click or tap to resume</small>';
+  document.body.appendChild(pauseBadge);
+  let presentationPaused=false;
+  function setPresentationPaused(value){
+    presentationPaused=value;
+    const introPlaying=document.documentElement.classList.contains('intro-playing');
+    if(introPlaying&&intro?.setPaused)intro.setPaused(value);else tour.setPaused?.(value);
+    document.documentElement.classList.toggle('presentation-paused',value);
+    pauseBadge.hidden=!value;
+    if(musicStarted&&soundOn)fadeTo(musicTarget(),600);
+  }
+  intro?.finished.then(()=>{if(presentationPaused){tour.setPaused?.(true);}});
+  let soundUnlockClick=false;
+  window.addEventListener('pointerdown',()=>{soundUnlockClick=soundOn&&!musicStarted;},{capture:true,passive:true});
+  document.addEventListener('click',event=>{
+    if(event.button!==0||event.defaultPrevented)return;
+    if(soundUnlockClick){soundUnlockClick=false;return;}
+    if(event.target.closest('a,button,input,select,textarea,label,dialog,[role="tab"],[role="tablist"],.layer-panel,.year-control,[contenteditable]'))return;
+    if(document.documentElement.dataset.presentationState==='complete')return;
+    setPresentationPaused(!presentationPaused);
+  });
 })();

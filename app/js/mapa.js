@@ -42,7 +42,7 @@
         projection: { type: "globe" },
         sources: {
           esri: { type: "raster", tiles: [`${ESRI}/World_Imagery/MapServer/tile/{z}/{y}/{x}`], tileSize: 256, maxzoom: 19,
-                  attribution: "Imagem © Esri, Maxar, Earthstar Geographics" },
+                  attribution: "Imagery © Esri, Maxar, Earthstar Geographics" },
           rotulos: { type: "raster", tiles: [`${ESRI}/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}`], tileSize: 256, maxzoom: 19 },
         },
         layers: [
@@ -156,8 +156,8 @@
     map.getSource("ndvi-img").updateImage({ url });
     return g.meses[mesIdx];
   }
-  const CLASSES_DECL = [[3, [61, 190, 122, 90], "0–3% plano"], [8, [61, 190, 122, 200], "3–8% suave ondulado"],
-    [13, [233, 196, 106, 230], "8–13% ondulado: atenção"], [20, [231, 140, 81, 240], "13–20% forte: erosão"], [999, [231, 111, 81, 255], "> 20%"]];
+  const CLASSES_DECL = [[3, [61, 190, 122, 90], "0–3% flat"], [8, [61, 190, 122, 200], "3–8% gently rolling"],
+    [13, [233, 196, 106, 230], "8–13% rolling: caution"], [20, [231, 140, 81, 240], "13–20% steep: erosion"], [999, [231, 111, 81, 255], "> 20%"]];
   function atualizarDeclividade(map) {
     const G = R.zonal.regiao(), g = G.relevo;
     const url = imagemGrade(g.w, g.h, (i) => { const d = g.dec[i] / 10; return CLASSES_DECL.find((c) => d <= c[0])[1]; });
@@ -173,7 +173,7 @@
     const G = R.zonal.regiao(), feats = [];
     for (const c of R.zonal.celulasParaMapa(anel, "relevo")) {
       const d = G.relevo.dec[c.c] / 10;
-      if (d > 8) feats.push({ type: "Feature", properties: { cor: CORES.amarelo, tipo: `Declividade ${d.toFixed(1)}%` }, geometry: { type: "Polygon", coordinates: quadrado(c.lon, c.lat, c.dx) } });
+      if (d > 8) feats.push({ type: "Feature", properties: { cor: CORES.amarelo, tipo: `Slope ${d.toFixed(1)}%` }, geometry: { type: "Polygon", coordinates: quadrado(c.lon, c.lat, c.dx) } });
     }
     const mb = G.mapbiomas, ultimo = mb ? mb.anos.length - 1 : 0, n = mb ? mb.w * mb.h : 0;
     if (mb) for (const c of R.zonal.celulasParaMapa(anel, "mapbiomas")) {
@@ -184,9 +184,9 @@
     return feats;
   }
   function classeRisco(r) {
-    if (r < 0.10) return { cor: CORES.verde, nome: "Favorável", faixa: "< 10% dos anos" };
-    if (r < 0.25) return { cor: CORES.amarelo, nome: "Atenção", faixa: "10% a 25% dos anos" };
-    return { cor: CORES.vermelho, nome: "Risco elevado", faixa: "> 25% dos anos" };
+    if (r < 0.10) return { cor: CORES.verde, nome: "Favorable", faixa: "< 10% of years" };
+    if (r < 0.25) return { cor: CORES.amarelo, nome: "Caution", faixa: "10% to 25% of years" };
+    return { cor: CORES.vermelho, nome: "High risk", faixa: "> 25% of years" };
   }
   function atualizarRisco(map, anel, risco) {
     const c = classeRisco(risco);

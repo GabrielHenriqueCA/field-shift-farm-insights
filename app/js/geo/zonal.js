@@ -85,12 +85,12 @@
   }
 
   const MAPBIOMAS = {
-    3: ["Formação florestal", "nativa"], 4: ["Formação savânica", "nativa"], 5: ["Mangue", "nativa"],
-    6: ["Floresta alagável", "nativa"], 11: ["Campo alagado", "nativa"], 12: ["Formação campestre", "nativa"],
-    9: ["Silvicultura", "uso"], 15: ["Pastagem", "uso"], 39: ["Soja", "lavoura"], 20: ["Cana", "lavoura"],
-    40: ["Arroz", "lavoura"], 41: ["Outras lavouras temporárias", "lavoura"], 62: ["Algodão", "lavoura"],
-    21: ["Mosaico de usos", "uso"], 24: ["Área urbanizada", "outro"], 25: ["Outra área não vegetada", "outro"],
-    33: ["Rio, lago", "agua"], 0: ["Sem dado", "outro"],
+    3: ["Forest formation", "nativa"], 4: ["Savanna formation", "nativa"], 5: ["Mangrove", "nativa"],
+    6: ["Flooded forest", "nativa"], 11: ["Wetland", "nativa"], 12: ["Grassland formation", "nativa"],
+    9: ["Forestry", "uso"], 15: ["Pasture", "uso"], 39: ["Soybean", "lavoura"], 20: ["Sugarcane", "lavoura"],
+    40: ["Rice", "lavoura"], 41: ["Other temporary crops", "lavoura"], 62: ["Cotton", "lavoura"],
+    21: ["Mosaic of uses", "uso"], 24: ["Urban area", "outro"], 25: ["Other non-vegetated area", "outro"],
+    33: ["River, lake", "agua"], 0: ["No data", "outro"],
   };
   function usoTerra(anel) {
     const G = regiao(), g = G.mapbiomas;
@@ -102,24 +102,24 @@
       const pares = Object.entries(cont).sort((a, b2) => b2[1] - a[1]);
       const nativa = pares.filter(([k]) => (MAPBIOMAS[k] || [])[1] === "nativa").reduce((s, [, v]) => s + v, 0);
       const [cl, q] = pares[0];
-      return { ano, classe: +cl, nome: (MAPBIOMAS[cl] || ["Classe " + cl])[0], fracao: q / idx.length,
+      return { ano, classe: +cl, nome: (MAPBIOMAS[cl] || ["Class " + cl])[0], fracao: q / idx.length,
                fracaoNativa: nativa / idx.length };
     });
   }
 
   // Uso do solo hoje (ESA WorldCover 10 m): o que existe dentro do polígono
   const WORLDCOVER = {
-    10: ["Árvores", "#1f6b3a", "mata"], 20: ["Arbustos", "#8a9a3b", "mata"], 30: ["Campo / pastagem", "#c9d36a", "agricola"],
-    40: ["Lavoura", "#E9C46A", "agricola"], 50: ["Construções", "#E76F51", "urbano"], 60: ["Solo exposto", "#b9a58c", "agricola"],
-    70: ["Neve e gelo", "#f0f0f0", "outro"], 80: ["Água", "#4C8DF6", "agua"], 90: ["Área úmida", "#3b9c9c", "agua"],
-    95: ["Mangue", "#1c8a6e", "mata"], 100: ["Musgo e líquen", "#d9c9a3", "outro"], 0: ["Sem dado", "#555", "outro"],
+    10: ["Trees", "#1f6b3a", "mata"], 20: ["Shrubs", "#8a9a3b", "mata"], 30: ["Grassland / pasture", "#c9d36a", "agricola"],
+    40: ["Cropland", "#E9C46A", "agricola"], 50: ["Built-up", "#E76F51", "urbano"], 60: ["Bare soil", "#b9a58c", "agricola"],
+    70: ["Snow and ice", "#f0f0f0", "outro"], 80: ["Water", "#4C8DF6", "agua"], 90: ["Wetland", "#3b9c9c", "agua"],
+    95: ["Mangrove", "#1c8a6e", "mata"], 100: ["Moss and lichen", "#d9c9a3", "outro"], 0: ["No data", "#555", "outro"],
   };
   function usoAtual(anel) {
     const G = regiao(), g = G.worldcover;
     if (!g) return null;
     const { idx, aproximado } = celulas(anel, g), cont = {};
     for (const c of idx) cont[g.v[c]] = (cont[g.v[c]] || 0) + 1;
-    const classes = Object.entries(cont).map(([k, q]) => ({ classe: +k, nome: (WORLDCOVER[k] || ["Classe " + k])[0],
+    const classes = Object.entries(cont).map(([k, q]) => ({ classe: +k, nome: (WORLDCOVER[k] || ["Class " + k])[0],
       cor: (WORLDCOVER[k] || [0, "#777"])[1], grupo: (WORLDCOVER[k] || [0, 0, "outro"])[2], fracao: q / idx.length }))
       .sort((a, b) => b.fracao - a.fracao);
     const soma = (grupo) => classes.filter((c) => c.grupo === grupo).reduce((s, c) => s + c.fracao, 0);
@@ -127,9 +127,9 @@
     const r = { classes, urbano: soma("urbano"), agua: soma("agua"), mata: soma("mata"), agricola: soma("agricola"), lavoura,
                 celulas: idx.length, aproximado, resolucao: `~${Math.round(g.dx * 111000)} m`, fonte: g.fonte };
     const alertas = [];
-    if (r.urbano >= 0.15) alertas.push({ nivel: r.urbano >= 0.5 ? "bloqueio" : "atencao", texto: `${Math.round(r.urbano * 100)}% do polígono são construções (casas, galpões, vias). Isso não é solo agrícola.` });
-    if (r.agua >= 0.15) alertas.push({ nivel: r.agua >= 0.5 ? "bloqueio" : "atencao", texto: `${Math.round(r.agua * 100)}% do polígono é água ou área úmida.` });
-    if (r.mata >= 0.25) alertas.push({ nivel: r.mata >= 0.6 ? "bloqueio" : "atencao", texto: `${Math.round(r.mata * 100)}% do polígono tem árvores ou arbustos. Verifique se é vegetação nativa protegida.` });
+    if (r.urbano >= 0.15) alertas.push({ nivel: r.urbano >= 0.5 ? "bloqueio" : "atencao", texto: `${Math.round(r.urbano * 100)}% of the polygon is built-up (houses, sheds, roads). That is not farmland.` });
+    if (r.agua >= 0.15) alertas.push({ nivel: r.agua >= 0.5 ? "bloqueio" : "atencao", texto: `${Math.round(r.agua * 100)}% of the polygon is water or wetland.` });
+    if (r.mata >= 0.25) alertas.push({ nivel: r.mata >= 0.6 ? "bloqueio" : "atencao", texto: `${Math.round(r.mata * 100)}% of the polygon has trees or shrubs. Check whether it is protected native vegetation.` });
     r.alertas = alertas;
     r.naoAgricola = r.agricola < 0.5;
     r.bloqueio = alertas.some((a) => a.nivel === "bloqueio") || r.naoAgricola;
@@ -146,10 +146,10 @@
     return { cc: th33, pmp: th1500 };
   }
   function classeTextura(areia, argila) {
-    if (argila >= 60) return "Muito argilosa";
-    if (argila >= 35) return "Argilosa";
-    if (areia >= 70 && argila < 15) return "Arenosa";
-    return "Média (franco)";
+    if (argila >= 60) return "Very clayey";
+    if (argila >= 35) return "Clayey";
+    if (areia >= 70 && argila < 15) return "Sandy";
+    return "Medium (loam)";
   }
   function solo(anel) {
     const G = regiao(), g = G.solo, { idx, aproximado } = celulas(anel, g);

@@ -1,12 +1,12 @@
 <!doctype html>
 <!-- Aviso de SI: interface escrita com ajuda de IA (Claude), sob direção do time Datanauts Brasil.
      Nenhum dado exibido é gerado por IA: os números vêm do motor determinístico e das fontes citadas. -->
-<html lang="pt-BR">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Rotare · Rotação de culturas</title>
-<meta name="description" content="Rotare: compare rotações de culturas de 3 anos para o seu talhão com dados de satélite e simulação climática.">
+<title>Rotare · Crop rotation</title>
+<meta name="description" content="Rotare: compare 3-year crop rotations for your field with satellite data and climate simulation.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fira+Mono:wght@400;500&family=Fira+Sans+Condensed:wght@500;600;700&family=Fira+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -15,21 +15,22 @@
 <link rel="icon" type="image/svg+xml" href="img/favicon.svg">
 </head>
 <body>
-<div id="mapa" aria-label="Mapa de satélite"></div>
+<div id="mapa" aria-label="Satellite map"></div>
 
 <header class="topo">
   <div class="marca">
     <img src="img/rotare-simbolo.svg" width="38" height="38" alt="" class="simbolo">
-    <b>Rotare</b><span>rotação de culturas vista do espaço</span>
+    <b>Rotare</b><span>crop rotation seen from space</span>
   </div>
-  <nav class="passos" id="passos" aria-label="Etapas"></nav>
-  <a class="btn fantasma mini" id="btn-apresentacao" href="apresentacao.html" title="Ver a apresentação do Rotare"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M10 8l6 4-6 4z"/></svg><span>Apresentação</span></a>
-  <button class="btn fantasma mini" id="btn-como" type="button"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/></svg><span>Como calculamos?</span></button>
+  <nav class="passos" id="passos" aria-label="Steps"></nav>
+  <button class="btn fantasma mini" id="btn-decisoes" type="button" hidden title="See the plans you saved in this session"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h12v18l-6-4-6 4z"/></svg><span>My crops</span><b class="contador num" id="n-decisoes">0</b></button>
+  <a class="btn fantasma mini" id="btn-apresentacao" href="apresentacao.html" title="See the Rotare presentation"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M10 8l6 4-6 4z"/></svg><span>Presentation</span></a>
+  <button class="btn fantasma mini" id="btn-como" type="button"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/></svg><span>How we calculate</span></button>
 </header>
 
 <aside class="painel" id="painel"><div class="painel-corpo" id="painel-corpo"></div><div class="rodape-painel oculto" id="painel-rodape"></div></aside>
 
-<div class="ferramentas oculto" id="ferramentas" role="toolbar" aria-label="Ferramentas de delimitação"></div>
+<div class="ferramentas oculto" id="ferramentas" role="toolbar" aria-label="Field drawing tools"></div>
 <div class="dica-mapa oculto" id="dica-mapa"></div>
 
 <div class="camadas" id="camadas"></div>

@@ -29,6 +29,7 @@ let html = read('apresentacao.template.html')
   .replace('src="landing/assets/earth.svg"',`src="${dataUrl('assets/earth.svg')}"`)
   .replace('src="landing/assets/ndvi-2024.webp"',`src="${assets['ndvi-2024.webp']}"`)
   .replace(/src="landing\/assets\/(screen-[^"]+)"/g,(_,name)=>`src="${assets[name]}"`)
+  .replace(/src="landing\/assets\/(caderno-[^"]+)"/g,(_,name)=>`src="${dataUrl(`assets/${name}`)}"`)
   .replace('</body>',()=>`<script>\n${read('regional-data.js')}\n${read('earth.js')}\n${read('flight.js')}\n${read('autoplay.js')}\n${read('story.js')}\n</script>\n<script data-landing>\n${read('landing.js')}\n</script>\n</body>`);
 writeFileSync(resolve(here,'../apresentacao.html'),html);
 console.log('Created app/apresentacao.html: self-contained; original app logo; platform in the same folder.');

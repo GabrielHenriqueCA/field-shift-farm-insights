@@ -51,7 +51,13 @@ assert.deepEqual(automatic.entered,expected);assert.equal(automatic.completed,1)
 await automatic.advance(2000);assert.equal(automatic.completed,1);
 
 const manual=harness();manual.tour.start();await manual.advance(1);
-assert.equal(manual.tour.pause,undefined);assert.equal(manual.tour.resume,undefined);
+assert.equal(typeof manual.tour.setPaused,'function','Click-to-pause is available.');
+{const paused=harness();paused.tour.start();await paused.advance(1);paused.tour.setPaused(true);
+ for(let i=0;i<5;i++)await paused.advance(500);
+ assert.equal(paused.root.dataset.deckScene,'inicio','A paused presentation does not advance on its own.');
+ assert.equal(paused.root.dataset.presentationState,'paused');
+ paused.tour.setPaused(false);for(let i=0;i<3;i++)await paused.advance(101);
+ assert.notEqual(paused.root.dataset.deckScene,'inicio','Resuming continues the timer.');}
 manual.tour.defer(8000);
 for(const delta of [3,7,8,8])manual.wheel(delta);
 await manual.flush();assert.equal(manual.root.dataset.deckScene,'vegetacao-2015','Trackpad deltas advance without waiting for the timer.');
@@ -115,4 +121,4 @@ for(const path of ['../vercel.json','../../vercel.json']){
   assert.ok(rewrites.find(route=>route.source==='/explorar').destination.endsWith('/index.html'));
   assert.ok(!rewrites.some(route=>route.source==='/'&&route.destination.includes('apresentacao')));
 }
-console.log('PASS: manual/automatic scene parity, trackpad, touch, queued gestures, final animation, no pause controls and entry/platform routes.');
+console.log('PASS: manual/automatic scene parity, trackpad, touch, queued gestures, final animation, click-to-pause and entry/platform routes.');

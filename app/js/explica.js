@@ -6,10 +6,10 @@
   "use strict";
   const { CULTURAS, SEGUNDA_SAFRA } = R.catalogo;
   const pct = (x) => `${Math.round(x * 100)}%`;
-  const n0 = (x) => Math.round(x).toLocaleString("pt-BR");
-  const NOMES_EIXO = { solo: "Saúde do solo", risco: "Risco climático", agua: "Eficiência hídrica", renda: "Renda relativa" };
+  const n0 = (x) => Math.round(x).toLocaleString("en-US");
+  const NOMES_EIXO = { solo: "Soil health", risco: "Climate risk", agua: "Water efficiency", renda: "Relative income" };
 
-  function nomeSeq(seq) { return seq.map((o) => `Soja → ${SEGUNDA_SAFRA[o].nome}`).join(" | "); }
+  function nomeSeq(seq) { return seq.map((o) => `Soybean → ${SEGUNDA_SAFRA[o].nome}`).join(" | "); }
 
   function contribuicoes(card, ref, pesos) {
     const eixos = ["solo", "risco", "agua", "renda"];
@@ -28,24 +28,24 @@
     const fracos = c.filter((x) => x.efeito < -0.5).slice(-1);
     const m = card.metricas;
     const partes = [];
-    partes.push(`Com os seus pesos (${["solo", "risco", "agua", "renda"].map((e) => `${NOMES_EIXO[e].split(" ")[0].toLowerCase()} ${pct(ctx.pesos[e])}`).join(", ")}), esta sequência soma ${card.pontuacao.toFixed(0)} pontos e fica em ${card.posicao}º entre ${ctx.cartoes.length}.`);
+    partes.push(`With your weights (${["solo", "risco", "agua", "renda"].map((e) => `${{ solo: "soil", risco: "risk", agua: "water", renda: "income" }[e]} ${pct(ctx.pesos[e])}`).join(", ")}), this sequence scores ${card.pontuacao.toFixed(0)} points and ranks #${card.posicao} of ${ctx.cartoes.length}.`);
     if (ref && fortes.length) {
-      partes.push(`Em relação à sua rotação atual, o que mais pesa a favor: ${fortes.map((f) => `${NOMES_EIXO[f.eixo].toLowerCase()} (${f.eixo === "risco" ? "risco " + (f.delta > 0 ? "menor" : "maior") : (f.delta > 0 ? "+" : "") + f.delta.toFixed(0) + " pontos"})`).join(" e ")}.`);
+      partes.push(`Compared with your current rotation, what helps most: ${fortes.map((f) => `${NOMES_EIXO[f.eixo].toLowerCase()} (${f.eixo === "risco" ? (f.delta > 0 ? "lower" : "higher") + " risk" : (f.delta > 0 ? "+" : "") + f.delta.toFixed(0) + " points"})`).join(" and ")}.`);
     }
-    if (ref && fracos.length) partes.push(`O que pesa contra: ${NOMES_EIXO[fracos[0].eixo].toLowerCase()}.`);
-    partes.push(`Nos ${ctx.anos.length} anos usados no cálculo, a chance média de quebra de uma safra comercial por ano é ${pct(m.risco)}, as culturas aproveitam ${pct(m.agua)} da chuva e deixam ${m.solo.palhada.toFixed(0)} t/ha de palhada em 3 anos.`);
+    if (ref && fracos.length) partes.push(`What works against it: ${NOMES_EIXO[fracos[0].eixo].toLowerCase()}.`);
+    partes.push(`Over the ${ctx.anos.length} years used in the calculation, the average chance of a cash-crop failure per year is ${pct(m.risco)}, the crops use ${pct(m.agua)} of the rain and leave ${m.solo.palhada.toFixed(0)} t/ha of straw over 3 years.`);
     return partes.join(" ");
   }
 
   function beneficios(card) {
     const m = card.metricas, s = m.solo, out = [];
     const cob = card.seq.filter((o) => ["braquiaria", "milheto", "consorcio"].includes(o)).length;
-    if (cob) out.push(`${cob} de 3 anos com planta de cobertura: mais palhada (${s.palhada.toFixed(0)} t/ha em 3 anos) e raízes profundas que reciclam nutrientes.`);
-    if (s.erosao >= 0.7) out.push(`Solo descoberto só ${Math.round(s.diasDescobertos)} dias por ano em média: menor exposição à erosão.`);
-    if (new Set(card.seq).size >= 2) out.push(`Alterna ${new Set(card.seq).size} segundas safras diferentes, o que ajuda a quebrar ciclos de pragas e doenças.`);
-    if (m.agua >= 0.5) out.push(`As culturas usam ${pct(m.agua)} da chuva do ano, em vez de deixá-la drenar ou evaporar do solo nu.`);
-    if (card.seq.includes("sorgo") || card.seq.includes("milheto")) out.push("Sorgo e milheto toleram melhor o fim antecipado das chuvas que o milho.");
-    if (!out.length) out.push("Mantém o sistema que você já conhece, sem mudança de maquinário ou de logística.");
+    if (cob) out.push(`${cob} of 3 years with a cover crop: more straw (${s.palhada.toFixed(0)} t/ha over 3 years) and deep roots that recycle nutrients.`);
+    if (s.erosao >= 0.7) out.push(`Bare soil only ${Math.round(s.diasDescobertos)} days per year on average: less exposure to erosion.`);
+    if (new Set(card.seq).size >= 2) out.push(`Alternates ${new Set(card.seq).size} different second crops, which helps break pest and disease cycles.`);
+    if (m.agua >= 0.5) out.push(`The crops use ${pct(m.agua)} of the year's rain instead of letting it drain away or evaporate from bare soil.`);
+    if (card.seq.includes("sorgo") || card.seq.includes("milheto")) out.push("Sorghum and millet handle an early end of the rainy season better than corn.");
+    if (!out.length) out.push("Keeps the system you already know, with no change in machinery or logistics.");
     return out;
   }
 
@@ -54,31 +54,31 @@
     const r = ctx.resumo;
     for (const o of new Set(card.seq)) {
       const op = SEGUNDA_SAFRA[o];
-      if (r[o].foraJanela > 0.05) out.push(`${op.nome}: em ${pct(r[o].foraJanela)} dos anos a soja sai tarde demais para plantar dentro da janela.`);
+      if (r[o].foraJanela > 0.05) out.push(`${op.nome}: in ${pct(r[o].foraJanela)} of the years the soybean harvest comes too late to plant within the window.`);
       for (const cid of op.culturas) {
         if (CULTURAS[cid].papel !== "comercial") continue;
         const quebras = r[o].porAno.filter((a) => a.r.culturas[cid] && a.r.culturas[cid].falha && !a.r.culturas[cid].foraJanela).length;
-        if (quebras / r[o].porAno.length > 0.1) out.push(`${CULTURAS[cid].nome}: falta d'água séria (produtividade relativa abaixo de 80%) em ${quebras} de ${r[o].porAno.length} anos do cenário.`);
+        if (quebras / r[o].porAno.length > 0.1) out.push(`${CULTURAS[cid].nome}: serious water shortage (relative yield below 80%) in ${quebras} of ${r[o].porAno.length} years of the scenario.`);
       }
     }
-    if (card.seq.includes("algodao")) out.push("Algodão exige manejo intenso de bicudo e mais capital por hectare.");
-    if (card.seq.includes("consorcio")) out.push("No consórcio, a braquiária pode competir com o milho se a semeadura e a dose de herbicida não forem ajustadas.");
-    if (card.metricas.irrigacao > 1) out.push(`Depende de irrigação: em média ${n0(card.metricas.irrigacao)} mm por ano no cenário atual.`);
+    if (card.seq.includes("algodao")) out.push("Cotton requires intensive boll weevil management and more capital per hectare.");
+    if (card.seq.includes("consorcio")) out.push("In the intercrop, brachiaria can compete with corn if seeding and herbicide rates are not adjusted.");
+    if (card.metricas.irrigacao > 1) out.push(`Depends on irrigation: on average ${n0(card.metricas.irrigacao)} mm per year in the current scenario.`);
     const soja = r[card.seq[0]].porAno.filter((a) => a.r.culturas.soja.falha).length;
-    if (soja) out.push(`Soja: déficit hídrico forte em ${soja} de ${r[card.seq[0]].porAno.length} anos, vale para todas as estratégias.`);
-    if (!out.length) out.push("Nenhum risco climático acima de 10% dos anos foi encontrado neste cenário.");
+    if (soja) out.push(`Soybean: strong water deficit in ${soja} of ${r[card.seq[0]].porAno.length} years; this applies to every strategy.`);
+    if (!out.length) out.push("No climate risk above 10% of years was found in this scenario.");
     return out;
   }
 
   function naoSabemos(ctx) {
     const out = [
-      ctx.laudo ? "Usamos o seu laudo de solo." : "Sem laudo de solo: textura e carbono são estimativas do SoilGrids (250 m). Um laudo melhora o resultado.",
-      "Chuva e temperatura vêm de grades regionais (CHIRPS ~5 km, NASA POWER ~55 km): o valor é o mesmo para talhões vizinhos.",
-      "Preço, custo de produção e disponibilidade de semente não entram. A renda é um índice relativo (soja = 1).",
-      "Histórico de pragas, doenças e plantas daninhas do talhão não é conhecido.",
-      "O NDVI de 250 m não distingue milho, sorgo e milheto: o histórico é inferido e você confirma.",
+      ctx.laudo ? "We used your soil test." : "No soil test: texture and carbon are SoilGrids estimates (250 m). A lab soil test improves the result.",
+      "Rain and temperature come from regional grids (CHIRPS ~5 km, NASA POWER ~55 km): neighboring fields get the same value.",
+      "Prices, production costs and seed availability are not included. Income is a relative index (soybean = 1).",
+      "The field's history of pests, diseases and weeds is unknown.",
+      "250 m NDVI cannot tell corn, sorghum and millet apart: the history is inferred and you confirm it.",
     ];
-    if (ctx.aoVivo) out.push("O calendário do motor é o do Brasil Central (soja + 2ª safra). Fora desse sistema, os resultados são indicativos.");
+    if (ctx.aoVivo) out.push("The engine uses the Central Brazil calendar (soybean + second crop). Outside that system, results are indicative.");
     for (const a of ctx.alertasUso || []) out.unshift(a);
     return out;
   }
@@ -89,10 +89,10 @@
 
   // Interpretação do texto livre do produtor em pesos iniciais (regras por palavra-chave; ele ajusta depois)
   const TERMOS = {
-    solo: ["solo", "palha", "palhada", "erosão", "erosao", "matéria orgânica", "materia organica", "compact", "nematoide", "praga", "conserv", "regener", "cobertura", "fertilidade"],
-    risco: ["risco", "seca", "veranico", "segurança", "seguranca", "perder", "quebra", "clima", "el niño", "el nino", "estabilidade", "garantir"],
-    agua: ["água", "agua", "chuva", "irriga", "umidade", "hídric", "hidric"],
-    renda: ["renda", "lucro", "dinheiro", "rentab", "margem", "ganhar", "retorno", "preço", "preco", "mercado", "pagar"],
+    solo: ["solo", "palha", "palhada", "erosão", "erosao", "matéria orgânica", "materia organica", "compact", "nematoide", "praga", "conserv", "regener", "cobertura", "fertilidade", "soil", "straw", "erosion", "organic matter", "compaction", "pest", "conservation", "regenerat", "cover", "fertility"],
+    risco: ["risco", "seca", "veranico", "segurança", "seguranca", "perder", "quebra", "clima", "el niño", "el nino", "estabilidade", "garantir", "risk", "drought", "dry spell", "safety", "lose", "failure", "climate", "stability"],
+    agua: ["água", "agua", "chuva", "irriga", "umidade", "hídric", "hidric", "water", "rain", "irrigat", "moisture"],
+    renda: ["renda", "lucro", "dinheiro", "rentab", "margem", "ganhar", "retorno", "preço", "preco", "mercado", "pagar", "income", "profit", "money", "margin", "return", "price", "market"],
   };
   function interpretarPrioridades(texto) {
     const t = (texto || "").toLowerCase();

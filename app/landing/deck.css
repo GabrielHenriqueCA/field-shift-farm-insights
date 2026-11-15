@@ -149,3 +149,173 @@ main.deck-ready>.final-cta.deck-current{display:grid!important;place-items:cente
 @media(max-height:700px) and (max-width:760px){.handoff-loader{margin-top:14px}.deck-ready .final-cta .closing-credit{margin-top:16px}}
 @media(prefers-reduced-motion:reduce){.handoff-signals path{animation:none!important}}
 .header-platform{margin-left:auto;padding:8px 14px;border:1px solid #e9c46a66;border-radius:999px;color:#e9c46a;font:600 12px var(--body);letter-spacing:.4px;text-decoration:none;white-space:nowrap;position:relative;z-index:2}.header-platform:hover,.header-platform:focus-visible{background:#e9c46a1f;border-color:#e9c46a}.header-credit+.header-platform{margin-left:18px}@media(max-width:600px){.header-credit+.header-platform{margin-left:auto}.header-platform{padding:6px 10px;font-size:11px}}
+
+/* Do papel à tela: esboço do caderno ao lado da visão em camadas. */
+.sketch-scene{padding-top:90px;padding-bottom:90px}
+.sketch-heading h2{font-size:clamp(32px,4vw,58px);line-height:1.08;letter-spacing:-1px;margin:0}
+.sketch-compare{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:28px}
+.sketch-card{position:relative;margin:0;border:1px solid #f4f1ea14;background:#0b0f18;overflow:hidden}
+.sketch-card img{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover}
+.sketch-card.is-after{border-color:#e9c46a55}
+.sketch-tag{position:absolute;top:10px;left:10px;z-index:1;padding:5px 9px;font:8px var(--mono);letter-spacing:1.4px;color:#12141f;background:#f4f1ea}.sketch-tag b{font-weight:500;opacity:.55;margin-right:5px}
+.is-after .sketch-tag{background:var(--gold)}
+.sketch-card figcaption{padding:11px 14px;font-size:11px;line-height:1.6;color:#a8b5b5}
+main.deck-ready>.sketch-scene.deck-current{display:flex!important;flex-direction:column;justify-content:center}
+.deck-ready .sketch-card img{max-height:calc(100svh - 380px)}
+.deck-current .sketch-card{animation:deck-copy-in .7s .1s both}.deck-current .sketch-card:nth-child(2){animation-delay:.3s}.deck-current .sketch-card:nth-child(3){animation-delay:.5s}
+@media(max-width:760px){.sketch-compare{grid-template-columns:1fr;gap:12px;margin-top:16px}.sketch-card figcaption{font-size:10px;padding:8px 10px}.deck-ready .sketch-card img{max-height:calc((100svh - 330px)/3)}.deck-ready .sketch-card figcaption{display:none}}
+
+/* Problema e resultado reaproveitam o palco da missão. */
+.result-evidence{grid-template-columns:repeat(4,minmax(0,1fr))}
+.result-evidence strong>i{font:400 .55em/1 var(--body);font-style:normal;color:#81988f;margin:0 2px}
+.risk-scene .mission-evidence strong{color:#f2a08a}
+.risk-scene .mission-evidence>article{border-top-color:#e76f5160;background:linear-gradient(145deg,#e76f5108,transparent 75%)}
+.final-cta p.cta-next{max-width:560px;margin:16px auto 0;color:#a8b5b5}
+@media(max-width:760px){.result-evidence{grid-template-columns:repeat(2,minmax(0,1fr))}.deck-ready .final-cta p.cta-next{font-size:10px;margin-top:10px}}
+.deck-ready .result-scene h2{font-size:clamp(36px,4.4vw,64px)}
+
+/* Legibilidade: piso de tamanho para os textos pequenos da abertura e dos rótulos. */
+@media(min-width:761px){
+  .deck-mode .header-credit{font-size:10px;letter-spacing:1.4px}
+  .flight-brand>small{font-size:10px}
+  .flight-eyebrow{font-size:12px}
+  .flight-location{font-size:12px}.flight-location>span{font-size:13px}
+  .flight-datum>small{font-size:10px}.flight-datum>span{font-size:12px}
+  .flight-credit{font-size:10px}
+  .deck-ready .hero-content>.eyebrow{font-size:12px}
+  .deck-ready .hero-description{font-size:15px}
+  .deck-ready .hero-signature{font-size:11px}
+  .deck-ready .hero-stats b span{font-size:12px}
+  .deck-ready .hero-stats>div>span{font-size:12px}
+  .deck-ready .scroll-cue{font-size:10px}
+  .globe-label .mono{font-size:11px}.globe-label{font-size:13px}
+  .pin-label small{font-size:10px}
+  .globe-caption{font-size:10px}
+  .orbital-note{font-size:10px}
+  main.deck-ready .section-kicker{font-size:11px}main.deck-ready .section-kicker>span:last-child{font-size:10px}
+  .mission-evidence small{font-size:10px}
+  .mission-evidence p{font-size:13px}
+  .mission-evidence strong>span{font-size:13px}
+  .mission-data-note{font-size:12px}
+  .sketch-tag{font-size:10px}
+  .closing-credit{font-size:10px}.closing-disclosure{font-size:10px}
+  .handoff-node{font-size:10px}
+}
+@media(max-width:760px){
+  .deck-mode .header-credit{font-size:8px}
+  .flight-brand>small{font-size:8px}
+  .flight-eyebrow{font-size:9px}
+  .flight-location{font-size:9px}.flight-location>span{font-size:10px}
+  .flight-datum>small{font-size:8px}.flight-datum>span{font-size:9px}
+  .flight-credit{font-size:8px}
+  .deck-ready .hero-content>.eyebrow{font-size:9px}
+  .deck-ready .hero-signature{font-size:9px}
+  .deck-ready .hero-stats b span{font-size:9px}
+  .deck-ready .hero-stats>div>span{font-size:9px}
+  .deck-ready .scroll-cue{font-size:8px}
+  .pin-label small{font-size:8px}
+  .deck-ready .section-kicker{font-size:9px}.deck-ready .section-kicker>span:last-child{font-size:8px}
+  .mission-evidence small{font-size:8px}
+  .mission-data-note{font-size:9px}
+  .closing-credit{font-size:8px}.closing-disclosure{font-size:8px}
+  .handoff-node{font-size:8px}
+}
+@media(min-width:761px){.deck-ready .orbital-note{translate:0 -18px}}
+@media(max-width:760px){.orbital-note{font-size:8px}}
+@media(max-width:520px){.deck-mode .header-credit{display:none}}
+/* Aviso obrigatório de SI: só na imagem conceitual gerada por IA. */
+.sketch-ai{position:absolute;top:10px;right:10px;z-index:1;padding:5px 8px;font:9px var(--mono);letter-spacing:1.2px;color:#f4f1ea;background:#12141fd9;border:1px solid #f4f1ea40}
+@media(max-width:760px){.sketch-ai{font-size:7px;padding:4px 6px}}
+.why-demo{margin-top:14px;padding:12px 16px;border-left:2px solid var(--gold);background:linear-gradient(90deg,#e9c46a12,transparent 80%);font-size:13px;line-height:1.6;color:#d9d6cf;max-width:980px}
+.why-demo strong{color:var(--gold);font-weight:600;margin-right:4px}
+@media(max-width:760px){.why-demo{font-size:10.5px;padding:8px 10px;margin-top:10px;line-height:1.5}}
+
+/* Legibilidade, segunda passada: letras pequenas levemente maiores em todo o deck. */
+@media(min-width:761px){
+  .deck-mode .header-credit{font-size:11px}
+  .deck-ready .hero-content>.eyebrow{font-size:13px}
+  .deck-ready .hero-signature{font-size:12px}
+  .deck-ready .hero-stats>div>span,.deck-ready .hero-stats b span{font-size:13px}
+  .deck-ready .scroll-cue,.orbital-note,.globe-caption,.pin-label small{font-size:11px}
+  .globe-label .mono{font-size:12px}
+  main.deck-ready .section-kicker{font-size:12px}main.deck-ready .section-kicker>span:last-child{font-size:11px}
+  .mission-evidence small{font-size:11px}.mission-evidence p{font-size:14px}.mission-data-note{font-size:13px}
+  .sketch-tag,.sketch-ai{font-size:11px}.sketch-card figcaption{font-size:13px}
+  .deck-ready .signal-label{font-size:11px}.deck-ready .signal-label>small{font-size:11px}
+  .deck-ready .signal-source{font-size:11px}.deck-ready .regional-method{font-size:12px}
+  .map-scene-heading .eyebrow{font-size:11px}
+  .deck-ready .map-topbar,.deck-ready .map-topbar>span:last-child{font-size:10px}
+  .deck-ready .map-legend{font-size:10px}.deck-ready .map-coordinate{font-size:10px}
+  .deck-ready .map-badge small{font-size:10px}.deck-ready .map-badge strong{font-size:13px}.deck-ready .north{font-size:11px}
+  .deck-ready .layer-panel>.eyebrow{font-size:10px}.deck-ready .source-chip{font-size:11px}
+  .deck-ready .year-control label{font-size:11px}.deck-ready .range-labels,.deck-ready .range-labels>span:nth-child(2){font-size:10px}
+  .deck-ready .data-note{font-size:12px}
+  .deck-ready .explorer-caption,.deck-ready .explorer-caption>span:first-child{font-size:10px}
+  .deck-ready .story-heading .eyebrow{font-size:11px}.story-heading>span{font-size:10px}
+  .deck-ready .story-window-bar{font-size:10px}.deck-ready .story-caption{font-size:10px}
+  .deck-ready .story-chapters{font-size:12px}.deck-ready .story-chapters b{font-size:9px}
+  .deck-ready .source-number{font-size:10px}.deck-ready .source-list small{font-size:12px}
+  .science-footnote{font-size:12px}
+  .deck-ready .final-cta .eyebrow{font-size:11px}
+  .closing-credit,.closing-disclosure,.handoff-node{font-size:11px}
+  .flight-eyebrow{font-size:13px}.flight-datum>small,.flight-credit,.flight-brand>small{font-size:11px}.flight-datum>span{font-size:13px}
+}
+@media(max-width:760px){
+  .deck-ready .hero-content>.eyebrow,.deck-ready .hero-signature{font-size:10px}
+  .deck-ready .hero-stats>div>span,.deck-ready .hero-stats b span{font-size:10px}
+  .deck-ready .scroll-cue,.orbital-note,.pin-label small{font-size:9px}
+  .deck-ready .section-kicker{font-size:10px}.deck-ready .section-kicker>span:last-child{font-size:9px}
+  .mission-evidence small{font-size:8.5px}.mission-data-note{font-size:9.5px}
+  .deck-ready .signal-label,.deck-ready .signal-label>small,.deck-ready .signal-source{font-size:8.5px}
+  .map-scene-heading .eyebrow{font-size:9px}
+  .deck-ready .map-topbar,.deck-ready .map-topbar>span:last-child,.deck-ready .map-legend,.deck-ready .map-coordinate,.deck-ready .map-badge small{font-size:8px}
+  .deck-ready .map-badge strong{font-size:9.5px}.deck-ready .north{font-size:8px}
+  .deck-ready .range-labels,.deck-ready .range-labels>span:nth-child(2){font-size:8px}
+  .deck-ready .explorer-caption,.deck-ready .explorer-caption>span:first-child{font-size:8px}
+  .deck-ready .story-heading .eyebrow{font-size:9px}
+  .deck-ready .story-window-bar,.deck-ready .story-caption{font-size:8.5px}
+  .deck-ready .story-chapters{font-size:9px}.deck-ready .story-chapters b{font-size:7.5px}
+  .deck-ready .source-number{font-size:8.5px}.deck-ready .source-list small{font-size:9.5px}
+  .deck-ready .final-cta .eyebrow{font-size:9px}
+  .closing-credit,.closing-disclosure,.handoff-node{font-size:9px}
+  .flight-eyebrow{font-size:10px}.flight-datum>small,.flight-credit,.flight-brand>small{font-size:8.5px}.flight-datum>span{font-size:9.5px}
+  .sketch-tag,.sketch-ai{font-size:8px}
+}
+/* Card de validação com produtividade real (IBGE PAM) no slide do problema. */
+.risk-scene .mission-evidence>article.reality{border-top-color:#e9c46a80;background:linear-gradient(145deg,#e9c46a0d,transparent 75%)}
+.risk-scene .mission-evidence>article.reality strong{color:var(--gold)}
+@media(min-width:761px){.risk-scene .mission-evidence p{font-size:13px}.risk-scene .mission-evidence h3{font-size:18px}}
+@media(max-width:760px){
+  .deck-ready .risk-scene .mission-copy p:nth-child(2),.deck-ready .risk-scene .mission-data-note{display:none}
+  .deck-ready .risk-scene .mission-layout{gap:14px}
+  .deck-ready .risk-scene h2{font-size:34px}
+  .deck-ready .risk-scene .section-kicker{margin-bottom:14px}
+  .deck-ready .risk-scene .mission-evidence{margin-top:12px}
+  .deck-ready .risk-scene .why-demo{font-size:10px;line-height:1.45}
+}
+@media(max-width:760px) and (max-height:780px){.deck-ready .risk-scene .mission-copy{display:none}}
+
+/* Pausa por clique/toque: selo visível enquanto a apresentação está parada. */
+.pause-badge{position:fixed;left:50%;bottom:28px;translate:-50% 0;z-index:9999;display:flex;align-items:center;gap:12px;padding:12px 18px 12px 14px;border:1px solid #e9c46a80;border-radius:999px;background:#10131cf0;box-shadow:0 10px 40px #0009;color:#f4f1ea;font:500 14px/1.2 var(--body);backdrop-filter:blur(6px);animation:pause-in .25s ease both;pointer-events:none}
+.pause-badge[hidden]{display:none}
+.pause-badge b{font-weight:600;color:var(--gold);letter-spacing:.5px}
+.pause-badge small{font-size:12px;color:#a8b5b5}
+.pause-icon{display:inline-flex;gap:4px;width:26px;height:26px;border-radius:50%;background:var(--gold);align-items:center;justify-content:center}
+.pause-icon i{width:4px;height:11px;border-radius:1px;background:#12141f}
+html.presentation-paused body{cursor:pointer}
+html.presentation-paused main,html.presentation-paused .flight-intro{filter:saturate(.75) brightness(.85);transition:filter .3s ease}
+@keyframes pause-in{from{opacity:0;translate:-50% 8px}to{opacity:1;translate:-50% 0}}
+@media(max-width:760px){.pause-badge{bottom:18px;padding:10px 14px 10px 10px;gap:9px;font-size:13px}.pause-badge small{font-size:10.5px}}
+@media(prefers-reduced-motion:reduce){.pause-badge{animation:none}}
+.pause-badge small,.pause-badge b{white-space:nowrap}
+
+/* Botão de som da trilha de fundo. */
+.sound-toggle{position:fixed;right:22px;bottom:22px;z-index:9999;display:flex;align-items:center;gap:8px;padding:9px 14px 9px 11px;border:1px solid #f4f1ea33;border-radius:999px;background:#10131ce6;color:#d9d6cf;font:500 12px/1 var(--body);cursor:pointer;backdrop-filter:blur(6px);transition:border-color .2s,color .2s}
+.sound-toggle svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.sound-toggle svg path:first-child{fill:currentColor;stroke:none}
+.sound-toggle:hover,.sound-toggle:focus-visible{border-color:var(--gold);color:#f4f1ea;outline:none}
+.sound-toggle[data-state="on"]{color:var(--gold);border-color:#e9c46a66}
+.sound-toggle[data-state="blocked"]{color:#f4f1ea;border-color:var(--gold);animation:sound-hint 1.8s ease-in-out infinite}
+@keyframes sound-hint{50%{box-shadow:0 0 0 6px #e9c46a26}}
+@media(max-width:760px){.sound-toggle{right:12px;bottom:12px;padding:8px 10px}.sound-toggle span{display:none}.pause-badge{bottom:64px}}
+@media(prefers-reduced-motion:reduce){.sound-toggle{animation:none!important}}

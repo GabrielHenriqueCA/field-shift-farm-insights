@@ -21,15 +21,15 @@
       const mb = usoTerra ? usoTerra.find((u) => u.ano === ano + 1) || usoTerra.find((u) => u.ano === ano) : null;
       let opcao, texto, confianca;
       if (verao === null || verao < LIMIAR.verao) {
-        opcao = null; texto = "Sem lavoura de verão detectada"; confianca = "media";
+        opcao = null; texto = "No summer crop detected"; confianca = "media";
       } else if (segunda === null || segunda < LIMIAR.segunda) {
-        opcao = "pousio"; texto = "Soja, sem segunda safra"; confianca = "media";
+        opcao = "pousio"; texto = "Soybean, no second crop"; confianca = "media";
       } else if (jul !== null && jul >= LIMIAR.julho) {
-        opcao = "algodao"; texto = "Soja + segunda safra de ciclo longo (algodão provável)"; confianca = "baixa";
+        opcao = "algodao"; texto = "Soybean + long-cycle second crop (likely cotton)"; confianca = "baixa";
       } else if (jul !== null && ago !== null && jul >= LIMIAR.cobertura && ago >= LIMIAR.cobertura) {
-        opcao = "consorcio"; texto = "Soja + segunda safra com cobertura na seca (milho + braquiária provável)"; confianca = "baixa";
+        opcao = "consorcio"; texto = "Soybean + second crop with dry-season cover (likely corn + brachiaria)"; confianca = "baixa";
       } else {
-        opcao = "milho"; texto = "Soja + segunda safra (milho provável)"; confianca = "media";
+        opcao = "milho"; texto = "Soybean + second crop (likely corn)"; confianca = "media";
       }
       out.push({ safra: `${ano}/${String(ano + 1).slice(2)}`, ano, verao, vale, segunda, jul, ago, opcao, texto, confianca,
                  mapbiomas: mb ? `${mb.nome} (${Math.round(mb.fracao * 100)}%)` : null,

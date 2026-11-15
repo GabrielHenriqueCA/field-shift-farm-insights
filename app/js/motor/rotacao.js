@@ -217,14 +217,14 @@
     } else {
       const usadas = new Set();
       cartoes = [];
-      if (ctx.atual) { cartoes.push({ id: "atual", titulo: "Sua rotação atual", seq: ctx.atual }); usadas.add(chaveComb(ctx.atual)); }
-      const titulos = { equilibrio: "Equilíbrio agrícola", conservacao: "Conservação do solo", resiliencia: "Resiliência climática" };
+      if (ctx.atual) { cartoes.push({ id: "atual", titulo: "Your current rotation", seq: ctx.atual }); usadas.add(chaveComb(ctx.atual)); }
+      const titulos = { equilibrio: "Farm balance", conservacao: "Soil conservation", resiliencia: "Climate resilience" };
       for (const id of ["equilibrio", "conservacao", "resiliencia"]) {
         const s = melhor(validas, avaliar, PESOS_CENARIO[id], usadas);
         if (s) { cartoes.push({ id, titulo: titulos[id], seq: s }); usadas.add(chaveComb(s)); }
       }
       const sob = melhor(validas, avaliar, ctx.pesos, new Set());
-      if (sob && !usadas.has(chaveComb(sob))) cartoes.push({ id: "sobmedida", titulo: "Sob medida para você", seq: sob });
+      if (sob && !usadas.has(chaveComb(sob))) cartoes.push({ id: "sobmedida", titulo: "Tailored to you", seq: sob });
     }
 
     for (const c of cartoes) {
