@@ -6,21 +6,25 @@ Grades e series para QUALQUER area, usadas pelo app (servidor ao vivo) e pelo pr
 Todas as grades saem em EPSG:4326 alinhadas a caixa [W, S, E, N], no formato que o navegador decodifica
 (js/geo/zonal.js).
 """
+import ast
 import base64
 import json
 import math
+import struct
+import sys
 import os
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
+from array import array
 from pathlib import Path
 
 import calendar
 from datetime import date, datetime, timedelta, timezone
 
-import numpy as np
-
-# Sem pandas de proposito: este modulo roda na Serverless Function da Vercel (api/), cujo pacote
-# tem limite de tamanho, e o pandas sozinho ocupa ~80 MB. Datas e medias saem de datetime e numpy.
+# Sem pandas e sem numpy de proposito: este modulo roda na Serverless Function da Vercel (api/), cujo
+# pacote tem limite de 225 MB, e os dois juntos ocupavam ~135 MB. Os pixels chegam do Earth Engine no
+# formato NPY e sao lidos com a biblioteca padrao. As contas reproduzem o float32 do numpy (cada
+# resultado volta a float32 com array('f')), entao as grades saem byte a byte iguais as de antes.
 
 INICIO_CLIMA, FIM_CLIMA = "1981-01-01", "2025-06-30"
 DX_250 = 0.0025
@@ -100,16 +104,65 @@ def _dias(inicio, fim):
 
 def _interp(v):
     """Interpolacao linear por posicao, com as pontas repetindo o valor valido mais proximo."""
-    v = np.asarray(v, dtype=float)
-    ok = ~np.isnan(v)
-    if ok.all() or not ok.any():
+    v = [float(x) for x in v]
+    xs = [i for i, x in enumerate(v) if not math.isnan(x)]
+    if len(xs) == len(v) or not xs:
         return v
-    i = np.arange(len(v))
-    return np.interp(i, i[ok], v[ok])
+    out, j = [], 0
+    for i in range(len(v)):          # mesma formula do numpy.interp: inclinacao * (x - xp[j]) + fp[j]
+        if i <= xs[0]:
+            out.append(v[xs[0]])
+        elif i >= xs[-1]:
+            out.append(v[xs[-1]])
+        else:
+            while xs[j + 1] <= i:
+                j += 1
+            a, b = xs[j], xs[j + 1]
+            out.append(v[a] if i == a else (v[b] - v[a]) / (b - a) * (i - a) + v[a])
+    return out
 
 
-def b64(arr):
-    return base64.b64encode(np.ascontiguousarray(arr).tobytes()).decode("ascii")
+def f32(valores):
+    """Arredonda cada valor para float32 (o mesmo que o numpy faz a cada operacao em float32)."""
+    return array("f", valores)
+
+
+def b64(valores, tipo="B"):
+    """Bytes de inteiros (B = uint8, h = int16) em Base64, no formato que o navegador decodifica."""
+    return base64.b64encode(array(tipo, valores).tobytes()).decode("ascii")
+
+
+_TIPOS_NPY = {"f4": "f", "f8": "d", "i1": "b", "u1": "B", "i2": "h", "u2": "H", "i4": "i", "u4": "I", "i8": "q", "u8": "Q"}
+
+
+def ler_npy(dados):
+    """Le o NPY estruturado do Earth Engine (um campo por banda) -> {banda: [valores]} em ordem de linha."""
+    if dados[:6] != bytes([0x93]) + b"NUMPY":
+        raise ValueError("O Earth Engine não devolveu NPY.")
+    if dados[6] == 1:
+        n, ini = struct.unpack("<H", dados[8:10])[0], 10
+    else:
+        n, ini = struct.unpack("<I", dados[8:12])[0], 12
+    cab = ast.literal_eval(dados[ini:ini + n].decode("latin1"))
+    if cab.get("fortran_order"):
+        raise ValueError("NPY em ordem Fortran não é suportado.")
+    descr, corpo = cab["descr"], dados[ini + n:]
+    if isinstance(descr, str):
+        descr = [("b0", descr)]
+    nomes, codigos = [], []
+    for campo in descr:
+        nome, tipo = campo[0], campo[1]
+        if tipo[0] == ">" or tipo[1:] not in _TIPOS_NPY:
+            raise ValueError(f"Tipo NPY não suportado: {tipo}")
+        nomes.append(nome)
+        codigos.append(_TIPOS_NPY[tipo[1:]])
+    if len(set(codigos)) == 1:       # caso comum: todas as bandas do mesmo tipo
+        tudo = array(codigos[0], corpo)
+        if sys.byteorder == "big":
+            tudo.byteswap()
+        return {nome: tudo[k::len(nomes)] for k, nome in enumerate(nomes)}
+    colunas = list(zip(*struct.iter_unpack("<" + "".join(codigos), corpo)))
+    return {nome: list(col) for nome, col in zip(nomes, colunas)}
 
 
 def grade(bbox, dx):
@@ -126,9 +179,9 @@ def baixar(ee, img, bbox, dx, bandas_por_lote=24):
     camadas = []
     for i in range(0, len(nomes), bandas_por_lote):
         lote = nomes[i:i + bandas_por_lote]
-        arr = ee.data.computePixels({"expression": img.select(lote), "fileFormat": "NUMPY_NDARRAY", "grid": g})
-        camadas += [np.asarray(arr[b], dtype=np.float32) for b in lote]
-    return np.stack(camadas), nomes, w, h
+        bandas = ler_npy(ee.data.computePixels({"expression": img.select(lote), "fileFormat": "NPY", "grid": g}))
+        camadas += [f32(bandas[b]) for b in lote]
+    return camadas, nomes, w, h
 
 
 # ------------------------------------------------------------------ grades
@@ -146,7 +199,11 @@ def grade_ndvi(ee, bbox, de="2014-07", ate="2025-06"):
               .max().rename(n).unmask(-1) for (a, m), n in zip(meses, nomes)]
     img = ee.ImageCollection(bandas).toBands().rename(nomes)
     arr, _, w, h = baixar(ee, img, bbox, DX_250)
-    cod = np.where(arr < -0.5, 255, np.clip(np.round((arr + 0.2) * 200), 0, 240)).astype(np.uint8)
+    c02 = f32([0.2])[0]
+    cod = []
+    for banda in arr:
+        escala = f32([x * 200 for x in f32([x + c02 for x in banda])])
+        cod += [255 if x < -0.5 else min(240, max(0, round(y))) for x, y in zip(banda, escala)]
     return {"meses": nomes, "w": w, "h": h, "dx": DX_250,
             "codificacao": "ndvi = byte/200 - 0.2 ; 255 = sem dado", "dados": b64(cod),
             "fonte": "NASA MODIS MOD13Q1 + MYD13Q1 v061 (250 m, 16 dias), maximo mensal, SummaryQA <= 1"}
@@ -160,9 +217,9 @@ def grade_mapbiomas(ee, bbox, anos=range(2014, 2024)):
     src = ee.Image(asset).select([f"classification_{a}" for a in anos])
     img = src.reduceResolution(ee.Reducer.mode(), maxPixels=1024).reproject(crs="EPSG:4326", crsTransform=[DX_250, 0, W, 0, -DX_250, N])
     arr, _, w, h = baixar(ee, img.unmask(0), bbox, DX_250)
-    if not np.any(arr):
+    if not any(x for banda in arr for x in banda):
         return None
-    return {"anos": anos, "w": w, "h": h, "dx": DX_250, "dados": b64(arr.astype(np.uint8)),
+    return {"anos": anos, "w": w, "h": h, "dx": DX_250, "dados": b64([int(x) for banda in arr for x in banda]),
             "fonte": "MapBiomas Coleção 9 (30 m), classe mais frequente por célula de ~270 m"}
 
 
@@ -178,7 +235,7 @@ def grade_worldcover(ee, bbox):
     img = wc.reduceResolution(ee.Reducer.mode(), maxPixels=4096).reproject(crs="EPSG:4326", crsTransform=[dx, 0, W, 0, -dx, N]) \
         if dx > 0.00015 else wc
     arr, _, w, h = baixar(ee, img.unmask(0).rename("Map"), bbox, dx)
-    return {"w": w, "h": h, "dx": dx, "dados": b64(arr[0].astype(np.uint8)), "classes": {str(k): v for k, v in WORLDCOVER.items()},
+    return {"w": w, "h": h, "dx": dx, "dados": b64([int(x) for x in arr[0]]), "classes": {str(k): v for k, v in WORLDCOVER.items()},
             "fonte": f"ESA WorldCover 2021 v200 (10 m), classe mais frequente por célula de ~{dx * 111000:.0f} m"}
 
 
@@ -194,9 +251,12 @@ def grade_solo(ee, bbox):
         out[prop] = soma.rename(prop)
     img = ee.Image.cat([out["sand"], out["clay"], out["soc"]]).unmask(-1)
     arr, _, w, h = baixar(ee, img, bbox, DX_250)
-    areia = np.where(arr[0] < 0, 255, np.round(arr[0] / 10)).astype(np.uint8)
-    argila = np.where(arr[1] < 0, 255, np.round(arr[1] / 10)).astype(np.uint8)
-    carb = np.where(arr[2] < 0, 255, np.clip(np.round(arr[2] / 10 * 4), 0, 254)).astype(np.uint8)
+    def pct(banda):
+        return [255 if x < 0 else round(y) for x, y in zip(banda, f32([x / 10 for x in banda]))]
+
+    areia, argila = pct(arr[0]), pct(arr[1])
+    carb = [255 if x < 0 else min(254, max(0, round(y)))
+            for x, y in zip(arr[2], f32([x * 4 for x in f32([x / 10 for x in arr[2]])]))]
     return {"w": w, "h": h, "dx": DX_250, "areia": b64(areia), "argila": b64(argila), "carbono": b64(carb),
             "codificacao": "areia e argila em % (255 = sem dado); carbono g/kg = byte/4",
             "fonte": "ISRIC SoilGrids 2.0 (250 m), média ponderada 0-30 cm"}
@@ -209,28 +269,31 @@ def grade_relevo(ee, bbox):
     img = ee.Image.cat([dem.rename("alt"), dec.rename("dec")]).reduceResolution(ee.Reducer.mean(), maxPixels=256) \
         .reproject(crs="EPSG:4326", crsTransform=[DX_90, 0, W, 0, -DX_90, N])
     arr, _, w, h = baixar(ee, img.unmask(-9999), bbox, DX_90)
-    alt = np.round(arr[0]).astype(np.int16)
-    dec = np.clip(np.round(np.where(arr[1] < 0, 0, arr[1]) * 10), 0, 255).astype(np.uint8)
-    return {"w": w, "h": h, "dx": DX_90, "altitude": b64(alt), "declividade": b64(dec),
+    alt = [round(x) for x in arr[0]]
+    dec = [min(255, max(0, round(y))) for y in f32([(0 if x < 0 else x) * 10 for x in arr[1]])]
+    return {"w": w, "h": h, "dx": DX_90, "altitude": b64(alt, "h"), "declividade": b64(dec),
             "codificacao": "altitude int16 em m; declividade % = byte/10",
             "fonte": "NASA SRTM GL1 v003 (30 m), média para ~90 m; declividade por ee.Terrain.slope"}
 
 
 # ------------------------------------------------------------------ series do ponto
-def ra_fao56(lat, doy):
+def ra_fao56(lat, doys):
+    """Radiacao extraterrestre (MJ/m2/dia) da FAO-56 para cada dia do ano; mesma ordem das contas de antes."""
     phi = math.radians(lat)
-    dr = 1 + 0.033 * np.cos(2 * np.pi / 365 * doy)
-    d = 0.409 * np.sin(2 * np.pi / 365 * doy - 1.39)
-    ws = np.arccos(np.clip(-np.tan(phi) * np.tan(d), -1, 1))
-    return 24 * 60 / np.pi * 0.0820 * dr * (ws * np.sin(phi) * np.sin(d) + np.cos(phi) * np.cos(d) * np.sin(ws))
+    k, c = 2 * math.pi / 365, 24 * 60 / math.pi * 0.0820
+    out = []
+    for doy in doys:
+        dr = 1 + 0.033 * math.cos(k * doy)
+        d = 0.409 * math.sin(k * doy - 1.39)
+        ws = math.acos(min(1.0, max(-1.0, -math.tan(phi) * math.tan(d))))
+        out.append(c * dr * (ws * math.sin(phi) * math.sin(d) + math.cos(phi) * math.cos(d) * math.sin(ws)))
+    return out
 
 
 def et0_hargreaves(lat, datas, tmax, tmin):
-    """datas: lista de date (ou qualquer objeto com timetuple())."""
-    tmed = (tmax + tmin) / 2
-    doy = np.array([d.timetuple().tm_yday for d in datas], dtype=float)
-    ra = ra_fao56(lat, doy) / 2.45
-    return 0.0023 * ra * (tmed + 17.8) * np.sqrt(np.clip(tmax - tmin, 0, None))
+    """datas: lista de date (ou qualquer objeto com timetuple()); tmax e tmin: listas do mesmo tamanho."""
+    ras = ra_fao56(lat, [float(d.timetuple().tm_yday) for d in datas])
+    return [0.0023 * (ra / 2.45) * ((a + b) / 2 + 17.8) * math.sqrt(max(a - b, 0.0)) for ra, a, b in zip(ras, tmax, tmin)]
 
 
 def chuva_chirps(ee, lat, lon):
@@ -253,7 +316,7 @@ def temperatura_power(lat, lon):
     p = json.load(urllib.request.urlopen(u, timeout=120))["properties"]["parameter"]
     dias = list(p["T2M_MAX"])
     datas = [datetime.strptime(d, "%Y%m%d").date() for d in dias]
-    lim = lambda xs: _interp([np.nan if x is None or x == -999 else x for x in xs])
+    lim = lambda xs: _interp([math.nan if x is None or x == -999 else x for x in xs])
     tmax, tmin = lim([p["T2M_MAX"][d] for d in dias]), lim([p["T2M_MIN"].get(d) for d in dias])
     return {d: (float(a), float(b)) for d, a, b in zip(datas, tmax, tmin)}
 
@@ -293,7 +356,13 @@ def smap_mensal(ee, lat, lon):
                 continue
             d = _dia_utc(r[it])
             por_mes.setdefault(f"{d.year}-{d.month:02d}", []).append((float(r[isu]), float(r[iro])))
-    return {m: [float(v) for v in np.round(np.mean(np.array(por_mes[m]), axis=0), 4)] for m in sorted(por_mes)}
+    def media4(vals):   # soma em sequencia e arredonda como numpy.round(x, 4): rint(x * 1e4) / 1e4
+        s = 0.0
+        for v in vals:
+            s += v
+        return round(s / len(vals) * 10000) / 10000
+
+    return {m: [media4([a for a, _ in por_mes[m]]), media4([b for _, b in por_mes[m]])] for m in sorted(por_mes)}
 
 
 def serie_clima(ee, lat, lon):
@@ -304,7 +373,7 @@ def serie_clima(ee, lat, lon):
         imerg, smap = f_im.result(), f_sm.result()
     datas = _dias(INICIO_CLIMA, FIM_CLIMA)
     chuva = [chuva.get(d, 0.0) for d in datas]
-    nan = (np.nan, np.nan)
+    nan = (math.nan, math.nan)
     tmax = _interp([temp.get(d, nan)[0] for d in datas])
     tmin = _interp([temp.get(d, nan)[1] for d in datas])
     et0 = et0_hargreaves(lat, datas, tmax, tmin)

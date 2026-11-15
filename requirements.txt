@@ -1,5 +1,5 @@
 # Dependencias das Serverless Functions da Vercel (api/ -> coleta/grades.py).
-# Sem pandas de proposito: ele sozinho ocupa ~80 MB e estourava o limite de tamanho da funcao.
-# A coleta completa (pandas, DuckDB, IMERG, rasterio...) tem o proprio coleta/requirements.txt.
+# So o earthengine-api, de proposito: pandas e numpy (~135 MB juntos) estouravam o limite de 225 MB
+# da funcao. O grades.py le os pixels em NPY com a biblioteca padrao e reproduz as contas em float32.
+# A coleta completa (pandas, numpy, DuckDB, IMERG, rasterio...) tem o proprio coleta/requirements.txt.
 earthengine-api>=1.0
-numpy>=1.26
