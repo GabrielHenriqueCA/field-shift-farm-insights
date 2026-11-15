@@ -88,6 +88,12 @@ class Rotare(SimpleHTTPRequestHandler):
 
     def do_GET(self):
         u = urlparse(self.path)
+        if u.path in ("/", "/apresentacao", "/apresentacao/"):
+            self.path = "/apresentacao.html"
+            return super().do_GET()
+        if u.path in ("/explorar", "/explorar/", "/plataforma", "/plataforma/"):
+            self.path = "/plataforma.html"
+            return super().do_GET()
         if u.path == "/api/status":
             try:
                 earth_engine()
