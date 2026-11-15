@@ -1,6 +1,5 @@
-# Dependencias das Serverless Functions da Vercel (api/status.py e api/pacote.py -> coleta/grades.py).
-# A coleta completa (IMERG, DuckDB, rasterio...) tem o proprio coleta/requirements.txt; nao entra aqui
-# para manter o pacote da funcao pequeno.
+# Dependencias das Serverless Functions da Vercel (api/ -> coleta/grades.py).
+# Sem pandas de proposito: ele sozinho ocupa ~80 MB e estourava o limite de tamanho da funcao.
+# A coleta completa (pandas, DuckDB, IMERG, rasterio...) tem o proprio coleta/requirements.txt.
 earthengine-api>=1.0
 numpy>=1.26
-pandas>=2.1

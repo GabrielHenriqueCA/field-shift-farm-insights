@@ -95,7 +95,8 @@ def app(environ, start_response):
     except Exception as e:
         err = traceback.format_exc()
         print("FATAL ERROR IN API:", err)
-        data = json.dumps({"ok": False, "erro": str(e), "traceback": err}, ensure_ascii=False).encode("utf-8")
+        # o traceback fica so no log da Vercel; nao vai para o visitante (expoe caminhos internos)
+        data = json.dumps({"ok": False, "erro": str(e)}, ensure_ascii=False).encode("utf-8")
         start_response("500 Internal Server Error", [
             ("Content-Type", "application/json; charset=utf-8"),
             ("Content-Length", str(len(data)))

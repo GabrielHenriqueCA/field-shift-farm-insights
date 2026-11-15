@@ -14,8 +14,13 @@ import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
+import calendar
+from datetime import date, datetime, timedelta, timezone
+
 import numpy as np
-import pandas as pd
+
+# Sem pandas de proposito: este modulo roda na Serverless Function da Vercel (api/), cujo pacote
+# tem limite de tamanho, e o pandas sozinho ocupa ~80 MB. Datas e medias saem de datetime e numpy.
 
 INICIO_CLIMA, FIM_CLIMA = "1981-01-01", "2025-06-30"
 DX_250 = 0.0025
@@ -68,6 +73,41 @@ def ee_init():
     return ee
 
 
+def _meses(de, ate):
+    """'2014-07'..'2025-06' -> [(ano, mes), ...] inclusivo."""
+    a, m = map(int, de.split("-"))
+    a2, m2 = map(int, ate.split("-"))
+    out = []
+    while (a, m) <= (a2, m2):
+        out.append((a, m))
+        a, m = (a + 1, 1) if m == 12 else (a, m + 1)
+    return out
+
+
+def _ultimo_dia(a, m):
+    return date(a, m, calendar.monthrange(a, m)[1])
+
+
+def _dia_utc(ms):
+    """Milissegundos do Earth Engine (UTC) -> date."""
+    return datetime.fromtimestamp(ms / 1000, tz=timezone.utc).date()
+
+
+def _dias(inicio, fim):
+    d0, d1 = date.fromisoformat(inicio), date.fromisoformat(fim)
+    return [d0 + timedelta(days=i) for i in range((d1 - d0).days + 1)]
+
+
+def _interp(v):
+    """Interpolacao linear por posicao, com as pontas repetindo o valor valido mais proximo."""
+    v = np.asarray(v, dtype=float)
+    ok = ~np.isnan(v)
+    if ok.all() or not ok.any():
+        return v
+    i = np.arange(len(v))
+    return np.interp(i, i[ok], v[ok])
+
+
 def b64(arr):
     return base64.b64encode(np.ascontiguousarray(arr).tobytes()).decode("ascii")
 
@@ -93,19 +133,21 @@ def baixar(ee, img, bbox, dx, bandas_por_lote=24):
 
 # ------------------------------------------------------------------ grades
 def grade_ndvi(ee, bbox, de="2014-07", ate="2025-06"):
-    meses = pd.period_range(de, ate, freq="M")
+    meses = _meses(de, ate)
+    nomes = [f"{a}-{m:02d}" for a, m in meses]
+    fim_total = _ultimo_dia(*meses[-1]) + timedelta(days=31)
 
     def prep(i):
         return i.select("NDVI").multiply(0.0001).updateMask(i.select("SummaryQA").lte(1)).copyProperties(i, ["system:time_start"])
 
     col = (ee.ImageCollection("MODIS/061/MOD13Q1").merge(ee.ImageCollection("MODIS/061/MYD13Q1"))
-           .filterDate(meses[0].start_time.strftime("%Y-%m-%d"), (meses[-1].end_time + pd.Timedelta(days=31)).strftime("%Y-%m-%d")).map(prep))
-    bandas = [col.filterDate(m.start_time.strftime("%Y-%m-%d"), (m.end_time + pd.Timedelta(days=1)).strftime("%Y-%m-%d"))
-              .max().rename(str(m)).unmask(-1) for m in meses]
-    img = ee.ImageCollection(bandas).toBands().rename([str(m) for m in meses])
+           .filterDate(f"{meses[0][0]}-{meses[0][1]:02d}-01", fim_total.isoformat()).map(prep))
+    bandas = [col.filterDate(f"{a}-{m:02d}-01", (_ultimo_dia(a, m) + timedelta(days=1)).isoformat())
+              .max().rename(n).unmask(-1) for (a, m), n in zip(meses, nomes)]
+    img = ee.ImageCollection(bandas).toBands().rename(nomes)
     arr, _, w, h = baixar(ee, img, bbox, DX_250)
     cod = np.where(arr < -0.5, 255, np.clip(np.round((arr + 0.2) * 200), 0, 240)).astype(np.uint8)
-    return {"meses": [str(m) for m in meses], "w": w, "h": h, "dx": DX_250,
+    return {"meses": nomes, "w": w, "h": h, "dx": DX_250,
             "codificacao": "ndvi = byte/200 - 0.2 ; 255 = sem dado", "dados": b64(cod),
             "fonte": "NASA MODIS MOD13Q1 + MYD13Q1 v061 (250 m, 16 dias), maximo mensal, SummaryQA <= 1"}
 
@@ -184,8 +226,10 @@ def ra_fao56(lat, doy):
 
 
 def et0_hargreaves(lat, datas, tmax, tmin):
+    """datas: lista de date (ou qualquer objeto com timetuple())."""
     tmed = (tmax + tmin) / 2
-    ra = ra_fao56(lat, datas.dayofyear.values) / 2.45
+    doy = np.array([d.timetuple().tm_yday for d in datas], dtype=float)
+    ra = ra_fao56(lat, doy) / 2.45
     return 0.0023 * ra * (tmed + 17.8) * np.sqrt(np.clip(tmax - tmin, 0, None))
 
 
@@ -194,18 +238,24 @@ def chuva_chirps(ee, lat, lon):
         raise ValueError("CHIRPS cobre só de 50°S a 50°N")
     col = ee.ImageCollection("UCSB-CHG/CHIRPS/DAILY").filterDate(INICIO_CLIMA, "2025-07-01").select("precipitation")
     rows = col.getRegion(ee.Geometry.Point(lon, lat), 5566).getInfo()
-    df = pd.DataFrame(rows[1:], columns=rows[0])
-    df["data"] = pd.to_datetime(df["time"], unit="ms").dt.normalize()
-    return df.groupby("data")["precipitation"].first()
+    it, ip = rows[0].index("time"), rows[0].index("precipitation")
+    chuva = {}
+    for r in rows[1:]:   # primeiro valor nao nulo de cada dia
+        d = _dia_utc(r[it])
+        if r[ip] is not None and d not in chuva:
+            chuva[d] = float(r[ip])
+    return chuva
 
 
 def temperatura_power(lat, lon):
     u = ("https://power.larc.nasa.gov/api/temporal/daily/point?parameters=T2M_MAX,T2M_MIN&community=AG"
          f"&longitude={lon:.4f}&latitude={lat:.4f}&start={INICIO_CLIMA.replace('-', '')}&end={FIM_CLIMA.replace('-', '')}&format=JSON")
     p = json.load(urllib.request.urlopen(u, timeout=120))["properties"]["parameter"]
-    df = pd.DataFrame({"tmax": p["T2M_MAX"], "tmin": p["T2M_MIN"]})
-    df.index = pd.to_datetime(df.index, format="%Y%m%d")
-    return df.replace(-999, np.nan).interpolate(limit_direction="both")
+    dias = list(p["T2M_MAX"])
+    datas = [datetime.strptime(d, "%Y%m%d").date() for d in dias]
+    lim = lambda xs: _interp([np.nan if x is None or x == -999 else x for x in xs])
+    tmax, tmin = lim([p["T2M_MAX"][d] for d in dias]), lim([p["T2M_MIN"].get(d) for d in dias])
+    return {d: (float(a), float(b)) for d, a, b in zip(datas, tmax, tmin)}
 
 
 def imerg_mensal(ee, lat, lon):
@@ -213,9 +263,10 @@ def imerg_mensal(ee, lat, lon):
     rows = col.getRegion(ee.Geometry.Point(lon, lat), 11132).getInfo()
     out = {}
     for r in rows[1:]:
-        d = pd.to_datetime(r[3], unit="ms")
+        d = _dia_utc(r[3])
         if r[4] is not None:
-            out[d.strftime("%Y-%m")] = round(float(r[4]) * 24 * d.days_in_month, 1)   # mm/h -> mm/mes
+            dias_mes = calendar.monthrange(d.year, d.month)[1]
+            out[f"{d.year}-{d.month:02d}"] = round(float(r[4]) * 24 * dias_mes, 1)   # mm/h -> mm/mes
     return out
 
 
@@ -230,16 +281,19 @@ def smap_mensal(ee, lat, lon):
             rows = col.getRegion(pt, 11000).getInfo()
         except Exception:
             return None
-        return pd.DataFrame(rows[1:], columns=rows[0])
+        return rows
 
     with ThreadPoolExecutor(6) as ex:
-        partes = [d for d in ex.map(ano, range(2015, 2026)) if d is not None and not d.empty]
-    if not partes:
-        return {}
-    df = pd.concat(partes).dropna()
-    df["mes"] = pd.to_datetime(df["time"], unit="ms").dt.strftime("%Y-%m")
-    g = df.groupby("mes")[["sm_surface", "sm_rootzone"]].mean().round(4)
-    return {m: [float(r.sm_surface), float(r.sm_rootzone)] for m, r in g.iterrows()}
+        partes = [r for r in ex.map(ano, range(2015, 2026)) if r and len(r) > 1]
+    por_mes = {}
+    for rows in partes:
+        it, isu, iro = rows[0].index("time"), rows[0].index("sm_surface"), rows[0].index("sm_rootzone")
+        for r in rows[1:]:
+            if any(v is None for v in r):   # mesma regra do dropna: linha com qualquer vazio sai
+                continue
+            d = _dia_utc(r[it])
+            por_mes.setdefault(f"{d.year}-{d.month:02d}", []).append((float(r[isu]), float(r[iro])))
+    return {m: [float(v) for v in np.round(np.mean(np.array(por_mes[m]), axis=0), 4)] for m in sorted(por_mes)}
 
 
 def serie_clima(ee, lat, lon):
@@ -248,17 +302,19 @@ def serie_clima(ee, lat, lon):
         f_im, f_sm = ex.submit(imerg_mensal, ee, lat, lon), ex.submit(smap_mensal, ee, lat, lon)
         chuva, temp = f_ch.result(), f_t.result()
         imerg, smap = f_im.result(), f_sm.result()
-    datas = pd.date_range(INICIO_CLIMA, FIM_CLIMA, freq="D")
-    chuva = chuva.reindex(datas).fillna(0.0)
-    temp = temp.reindex(datas).interpolate(limit_direction="both")
-    et0 = et0_hargreaves(lat, datas, temp.tmax.values, temp.tmin.values)
+    datas = _dias(INICIO_CLIMA, FIM_CLIMA)
+    chuva = [chuva.get(d, 0.0) for d in datas]
+    nan = (np.nan, np.nan)
+    tmax = _interp([temp.get(d, nan)[0] for d in datas])
+    tmin = _interp([temp.get(d, nan)[1] for d in datas])
+    et0 = et0_hargreaves(lat, datas, tmax, tmin)
     return {
         "ponto": {"lat": lat, "lon": lon, "local": f"{lat:.4f}, {lon:.4f}"},
         "inicio": INICIO_CLIMA,
-        "chuva": [round(float(v), 1) for v in chuva.values],
+        "chuva": [round(float(v), 1) for v in chuva],
         "et0": [round(float(v), 2) for v in et0],
-        "tmax": [round(float(v), 1) for v in temp.tmax.values],
-        "tmin": [round(float(v), 1) for v in temp.tmin.values],
+        "tmax": [round(float(v), 1) for v in tmax],
+        "tmin": [round(float(v), 1) for v in tmin],
         "imerg_mensal": imerg, "smap_mensal": smap,
         "fontes": {"chuva": "CHIRPS v2.0 diário (~5,5 km)", "temperatura": "NASA POWER diário (~55 km)",
                    "et0": "Hargreaves & Samani (1985) com Ra da FAO-56", "imerg": "NASA GPM IMERG Final V07 mensal (~11 km)",
