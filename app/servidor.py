@@ -76,6 +76,18 @@ class Rotare(SimpleHTTPRequestHandler):
     def __init__(self, *a, **k):
         super().__init__(*a, directory=str(AQUI), **k)
 
+    def copyfile(self, source, outputfile):
+        try:
+            super().copyfile(source, outputfile)
+        except (ConnectionResetError, ConnectionAbortedError, BrokenPipeError):
+            pass
+
+    def handle(self):
+        try:
+            super().handle()
+        except (ConnectionResetError, ConnectionAbortedError, BrokenPipeError):
+            pass
+
     def _json(self, codigo, corpo):
         if isinstance(corpo, (dict, list)):
             corpo = json.dumps(corpo, ensure_ascii=False).encode("utf-8")
@@ -143,6 +155,16 @@ def python_com_earth_engine():
     return None
 
 
+class ServidorRotare(ThreadingHTTPServer):
+    daemon_threads = True
+
+    def handle_error(self, request, client_address):
+        t, val, tb = sys.exc_info()
+        if t and issubclass(t, (ConnectionResetError, ConnectionAbortedError, BrokenPipeError)):
+            return
+        super().handle_error(request, client_address)
+
+
 if __name__ == "__main__":
     outro = python_com_earth_engine()
     if outro:
@@ -154,4 +176,11 @@ if __name__ == "__main__":
             sys.exit(0)
     porta = int(sys.argv[1]) if len(sys.argv) > 1 else 8765
     print(f"Rotare em http://127.0.0.1:{porta}  (Ctrl+C para parar)")
-    ThreadingHTTPServer(("127.0.0.1", porta), Rotare).serve_forever()
+    srv = ServidorRotare(("127.0.0.1", porta), Rotare)
+    while True:
+        try:
+            srv.serve_forever()
+        except KeyboardInterrupt:
+            break
+        except Exception:
+            time.sleep(0.5)
