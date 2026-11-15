@@ -91,14 +91,21 @@ The platform runs in the phone browser with the same journey. The panels open as
 
 ## 🏗 How It Works
 
-Rotare is a static website with two entry points: the website (`/`, [`app/apresentacao.html`](app/apresentacao.html)) and the platform (`/explorar`, [`app/plataforma.html`](app/plataforma.html)). All analysis runs in the browser. There is no backend and no AI in the calculations.
+Rotare has two entry points: the website (`/`, [`app/apresentacao.html`](app/apresentacao.html)) and the platform (`/explorar`, [`app/plataforma.html`](app/plataforma.html)). Both are static pages, and all analysis runs in the browser. A small Python API ([`api/`](api/), Vercel serverless) only fetches raw data for new areas; it does not score or rank anything. There is no AI in the calculations.
 
 ```mermaid
 flowchart TD
-    subgraph IN["Field data"]
-        DEMO["Sorriso, MT region<br/>pre-processed in app/data/"]
-        LIVE["Any area, live<br/>app/servidor.py + Google Earth Engine"]
+    subgraph OFF["Collection pipeline (offline, coleta/)"]
+        SRC["NASA and partner APIs<br/>Earth Engine · POWER · AppEEARS · earthaccess · IBGE"]
+        PQ["Parquet tables<br/>data/{field}/"]
+        DUCK["DuckDB<br/>data/rotare.duckdb<br/>validation and analysis"]
+        SRC -->|coleta_rotare.py| PQ -->|montar_banco.py| DUCK
     end
+    subgraph IN["Field data in the browser"]
+        DEMO["Sorriso, MT region<br/>pre-processed in app/data/*.js"]
+        LIVE["Any area, live<br/>/api/pacote → Earth Engine + POWER<br/>(app/servidor.py when local)"]
+    end
+    PQ -->|preparar_app.py| DEMO
     ZON["Zonal statistics on the polygon<br/>NDVI · WorldCover · MapBiomas · SoilGrids · SRTM"]
     HIST["Crop history<br/>NDVI phenology rules"]
     WB["Daily water balance, 30 seasons<br/>FAO-56 + FAO-33 · CHIRPS rain · POWER temperature"]
@@ -111,7 +118,7 @@ flowchart TD
     ZON --> WB --> RANK --> OUT
 ```
 
-1. **Field data.** The published site analyzes the Sorriso, MT region, whose grids and climate series are bundled in [`app/data/`](app/data/). With the optional local server ([`app/servidor.py`](app/servidor.py)), any drawn area is fetched live from Google Earth Engine and NASA POWER in seconds, using the same sources and methods.
+1. **Field data.** The Sorriso, MT region is bundled in [`app/data/`](app/data/): [`coleta/preparar_app.py`](coleta/preparar_app.py) builds those grids and climate series from the collected Parquet files and Earth Engine. Any other drawn area is fetched live by [`/api/pacote`](api/pacote.py) (Vercel serverless; [`app/servidor.py`](app/servidor.py) does the same locally) from Google Earth Engine and NASA POWER, using the same code ([`coleta/grades.py`](coleta/grades.py)), sources and methods. Responses are cached by the CDN on a fixed 0.01° grid.
 2. **X-ray** ([`app/js/geo/zonal.js`](app/js/geo/zonal.js)). The grids are cut to the drawn polygon: current land cover (WorldCover), land use since 2014 (MapBiomas), soil texture and carbon (SoilGrids 0–30 cm) and slope (SRTM). Urban or non-agricultural areas are blocked.
 3. **Crop history** ([`app/js/motor/historico.js`](app/js/motor/historico.js)). Simple phenology rules on the monthly NDVI curve infer each past season's crops. The result is always an inference that the farmer confirms or corrects.
 4. **Water balance** ([`app/js/motor/balanco.js`](app/js/motor/balanco.js)). For each of the 30 most recent complete seasons, the engine simulates soybean at the start of the rains followed by each second-crop option. It uses a daily root-zone water balance (FAO-56) and the yield response to water deficit (FAO-33), with CHIRPS rainfall and Hargreaves ET₀ from NASA POWER temperatures. Crop parameters are in [`app/js/motor/catalogo.js`](app/js/motor/catalogo.js).
@@ -119,7 +126,7 @@ flowchart TD
 6. **Climate simulator.** Rainfall and temperature can be shifted, and El Niño mode replays only the 6 strong El Niño seasons (NOAA ONI). The cards keep their sequences and are re-ranked.
 7. **Explanations** ([`app/js/explica.js`](app/js/explica.js)). Rules turn the engine numbers into text. No number is created at this step.
 
-The collection pipeline ([`coleta/`](coleta/)) gathers every source for a coordinate into [`data/`](data/). That folder holds Parquet and CSV tables for five fields (Brazil, Argentina, USA, India and Kenya) and a DuckDB database. The data in [`data/`](data/) is used to validate the engine against IBGE yields and ZARC planting windows. 19 automated tests (`node --test app/tests/motor.test.cjs`) cover the engine, geodesy, ranking, explanations and data integrity.
+The collection pipeline ([`coleta/`](coleta/)) gathers every source for a coordinate from the APIs and saves it as Parquet tables in [`data/`](data/), for five fields (Brazil, Argentina, USA, India and Kenya). The Parquet files are the source of truth: [`coleta/montar_banco.py`](coleta/montar_banco.py) rebuilds the DuckDB database ([`data/rotare.duckdb`](data/), read through [`motor/banco.py`](motor/banco.py)) from them, and Sorriso also has full CSV exports in [`data/sorriso/csv/`](data/sorriso/csv/). The DuckDB database is used offline to validate the engine against IBGE yields and ZARC planting windows; the web app never reads it. 19 automated tests (`node --test app/tests/motor.test.cjs`) cover the engine, geodesy, ranking, explanations and data integrity.
 
 ---
 
