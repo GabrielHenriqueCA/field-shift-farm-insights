@@ -1,0 +1,162 @@
+<!doctype html>
+<!-- Aviso de SI: apresentação criada com assistência de IA, sob direção da Datanauts Brasil.
+     Mapas regionais derivados dos dados reais do repositório; o globo usa uma textura geográfica real. -->
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <style>html{background:#050910}html.intro-pending .site-header,html.intro-pending main,html.intro-pending .site-footer,html.intro-pending .skip-link{visibility:hidden}</style>
+  <script>
+    if(!location.hash&&!matchMedia('(prefers-reduced-motion: reduce)').matches){
+      document.documentElement.classList.add('intro-pending');
+      addEventListener('load',()=>document.documentElement.classList.remove('intro-pending'),{once:true});
+    }
+  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#12141f">
+  <meta name="description" content="Rotare. Decida a próxima safra pensando na próxima década. Conheça a ferramenta da Datanauts Brasil que conecta dados da Terra às suas decisões no campo.">
+  <title>Rotare · Da órbita à sua próxima safra</title>
+  <link rel="icon" type="image/svg+xml" href="img/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Mono:wght@400;500&family=Fira+Sans+Condensed:wght@400;500;600;700&family=Fira+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="landing/landing.css">
+  <link rel="stylesheet" href="landing/cinema.css">
+  <link rel="stylesheet" href="landing/flight.css">
+  <link rel="stylesheet" href="landing/story.css">
+  <link rel="stylesheet" href="landing/deck.css">
+  <script defer src="landing/earth.js"></script>
+  <script defer src="landing/regional-data.js"></script>
+  <script defer src="landing/flight.js"></script>
+  <script defer src="landing/autoplay.js"></script>
+  <script defer src="landing/story.js"></script>
+  <script defer src="landing/landing.js"></script>
+</head>
+<body>
+<svg class="icon-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h15m-6-6 6 6-6 6"/></symbol>
+    <symbol id="i-external" viewBox="0 0 24 24"><path d="M6 18 18 6M6 6h12v12"/></symbol>
+    <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M19 4C9 3 3 7 5 14s15 7 14-10ZM4 21 15 10"/></symbol>
+    <symbol id="i-drop" viewBox="0 0 24 24"><path d="M12 3C9 8 5 11 5 15a7 7 0 0 0 14 0c0-4-4-7-7-12Z"/><path d="M9 14a3 3 0 0 0 3 4"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1 1m12 12 1 1M5 19l1-1M18 6l1-1"/></symbol>
+    <symbol id="i-orbit" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><ellipse cx="12" cy="12" rx="11" ry="6" transform="rotate(-35 12 12)"/><circle cx="20" cy="6" r="2" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="m12 3 8 4v5c0 5-8 9-8 9s-8-4-8-9V7l8-4Z"/><path d="m8 12 3 3 5-6"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 4v16h16M8 15v-4m5 4V7m5 8v-6"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  </defs></svg>
+
+  <section class="flight-intro" aria-label="Uma viagem do espaço ao campo" hidden>
+    <canvas class="flight-stars" aria-hidden="true"></canvas>
+    <div class="flight-sun" aria-hidden="true"></div>
+    <div class="flight-world" aria-hidden="true"><div class="flight-earth"><canvas class="flight-earth-canvas" width="1000" height="1000"></canvas></div></div>
+    <div class="flight-ground" aria-hidden="true"><img class="flight-ground-image" alt="" width="1600" height="1200"><div class="flight-ground-grid"></div><span class="flight-location"><i></i>SORRISO, MATO GROSSO<span>Solo, vegetação e relevo</span></span><div class="flight-data"><div class="flight-datum" style="--signal-order:0"><small>NASA MODIS · FEV. 2024</small><strong class="flight-ndvi">—</strong><span>vigor médio da vegetação</span></div><div class="flight-datum" style="--signal-order:1"><small>SOILGRIDS · 0–30 CM</small><strong class="flight-clay">—</strong><span>argila na grade regional</span></div><div class="flight-datum" style="--signal-order:2"><small>NASA SRTM</small><strong class="flight-slope">—</strong><span>declividade média</span></div></div></div>
+    <div class="flight-corridor" aria-hidden="true"><div class="flight-camera"><div class="tunnel-floor"></div><div class="tunnel-frame" style="--depth:0"><i></i></div><div class="tunnel-frame" style="--depth:1"><i></i></div><div class="tunnel-frame" style="--depth:2"><i></i></div><div class="tunnel-frame" style="--depth:3"><i></i></div><div class="tunnel-frame" style="--depth:4"><i></i></div><div class="tunnel-frame" style="--depth:5"><i></i></div><div class="tunnel-frame" style="--depth:6"><i></i></div><div class="tunnel-frame" style="--depth:7"><i></i></div></div></div>
+    <svg class="flight-cockpit" viewBox="0 0 1600 1000" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="hull" x2="0" y2="1"><stop stop-color="#2c343b"/><stop offset=".4" stop-color="#10151d"/><stop offset="1" stop-color="#05080e"/></linearGradient><linearGradient id="hull-edge" x2="0" y2="1"><stop stop-color="#c2d4da" stop-opacity=".28"/><stop offset="1" stop-color="#c2d4da" stop-opacity="0"/></linearGradient></defs><path d="M0 0H1600V105L1440 70H160L0 105Z" fill="url(#hull)"/><path d="m0 0 90 110 140 650-50 240H0Zm1600 0-90 110-140 650 50 240h180Z" fill="url(#hull)"/><path d="m90 110 140 650m1280-650-140 650M160 70h1280" fill="none" stroke="url(#hull-edge)" stroke-width="10"/><path d="m0 885 230-110 280 65h580l280-65 230 110v115H0Z" fill="url(#hull)"/><path d="m230 775 280 65h580l280-65" fill="none" stroke="#7b8e96" stroke-opacity=".3" stroke-width="3"/><path d="m15 95 60 20 141 652m1369-672-60 20-141 652" fill="none" stroke="#e9c46a" stroke-opacity=".35" stroke-width="2"/><g fill="#b9c7bd" opacity=".12"><path d="M80 925h170v3H80zm1270 0h170v3h-170zM580 899h440v2H580z"/></g><g fill="#e9c46a" opacity=".6"><circle cx="410" cy="903" r="3"/><circle cx="424" cy="903" r="3"/><circle cx="438" cy="903" r="3"/><circle cx="1160" cy="903" r="3"/></g></svg>
+    <div class="flight-vignette" aria-hidden="true"></div><div class="flight-grain" aria-hidden="true"></div>
+    <div class="flight-header"><div class="flight-brand"><img src="img/rotare-simbolo.svg" width="36" height="36" alt=""><span>Rotare</span><small>DATANAUTS BRASIL</small></div></div>
+    <div class="flight-copy"><p class="flight-eyebrow">UM NOVO OLHAR PARA A SUA TERRA</p><h2 class="flight-title">A próxima safra<br>começa com outro olhar.</h2><p class="flight-subtitle">Uma viagem do espaço ao que importa no seu talhão.</p></div>
+    <p class="flight-credit" hidden>Imagem © Esri, Vantor, Earthstar Geographics e GIS User Community · visualização da região de Sorriso.</p>
+    <p class="sr-only">Abertura visual automática. Role, deslize ou use as setas para avançar. A plataforma será aberta ao final da apresentação.</p>
+  </section>
+
+  <header class="site-header">
+    <div class="brand"><img src="img/rotare-simbolo.svg" width="36" height="36" alt=""><span>Rotare</span></div>
+    <span class="header-credit">DATANAUTS BRASIL <i></i> FIELD SHIFT</span>
+  </header>
+
+  <main id="conteudo">
+    <section class="hero" id="inicio" aria-labelledby="hero-title">
+      <canvas class="starfield" aria-hidden="true"></canvas>
+      <div class="hero-grid" aria-hidden="true"></div>
+      <div class="hero-topline"><span><i class="status-dot"></i> DATANAUTS BRASIL <span class="slash">/</span> FIELD SHIFT</span><span>OBSERVAR. COMPARAR. CULTIVAR.</span></div>
+      <div class="hero-content">
+        <p class="eyebrow"><span class="chapter-num">01</span> UMA NOVA PERSPECTIVA PARA O CAMPO</p>
+        <h1 id="hero-title"><span class="hero-line"><span>O futuro da</span></span><span class="hero-line"><span>sua terra começa</span></span><span class="hero-line"><span>em <em>órbita.</em></span></span></h1>
+        <p class="hero-description">Dados do espaço. Decisões com os pés no chão.<br>Compare rotações de culturas e descubra caminhos<br class="desktop-break"> para as próximas safras do seu talhão.</p>
+        
+        <div class="hero-signature"><span class="signature-line"></span> Decida a próxima safra pensando na próxima década.</div>
+      </div>
+
+      <div class="orbital-scene" aria-label="Ilustração conceitual da Terra, com destaque para o Brasil">
+        <div class="orbit orbit-one" aria-hidden="true"></div><div class="orbit orbit-two" aria-hidden="true"></div><div class="orbit orbit-three" aria-hidden="true"></div>
+        <div class="planet-wrap"><img class="planet" src="landing/assets/earth.svg" alt="Terra em perspectiva orbital, com textura geográfica real e destaque para o Brasil" width="900" height="900" fetchpriority="high"><canvas class="planet-canvas" width="900" height="900" aria-hidden="true"></canvas><div class="planet-scan" aria-hidden="true"></div></div>
+        <svg class="satellite" viewBox="0 0 120 70" aria-hidden="true"><g transform="rotate(-24 60 35)" stroke="#6b829b" stroke-width="1"><path d="M5 23h34v25H5zm76 0h34v25H81z" fill="#172941"/><path d="M16 23v25m11-25v25M5 35h34m54-12v25m11-25v25M81 35h34"/><path d="M39 32h11m20 0h11" stroke="#d5c39c" stroke-width="3"/><path d="m50 21 10-5 10 5v29H50Z" fill="#b7b3a5"/><path d="m50 21 10 6 10-6m-10 6v23"/><path d="M60 16V8m-8 0h16M64 50l10 12M68 56l10-5" stroke="#e9c46a"/><circle cx="78" cy="51" r="4" fill="none"/></g></svg>
+        <div class="globe-label label-top"><span class="label-cross">+</span><div><span class="mono">PERSPECTIVA ORBITAL</span><strong>Um novo olhar sobre a Terra.</strong></div></div>
+        <span class="brazil-pin"><span class="pin-rings" aria-hidden="true"></span><span class="pin-label"><b>SORRISO, MT</b><small>DADOS DA REGIÃO <svg class="icon"><use href="#i-arrow"/></svg></small></span></span><span class="orbital-trace trace-one" aria-hidden="true"></span><span class="orbital-trace trace-two" aria-hidden="true"></span>
+        <div class="globe-caption"><span class="caption-line"></span><span>DA ESCALA DO PLANETA<br>À ESCOLHA DO SEU TALHÃO.</span></div>
+        <span class="orbital-note mono">VISUALIZAÇÃO ORBITAL · SEM TELEMETRIA AO VIVO</span>
+      </div>
+      <div class="hero-bottom"><span class="scroll-cue"><span class="mouse-icon"></span> ROLE PARA EXPLORAR</span><div class="hero-stats"><div><b>10<span>anos</span></b><span>de histórico observado</span></div><div><b>3<span>safras</span></b><span>para comparar sequências</span></div><div><b>4<span>prioridades</span></b><span>definidas por você</span></div></div></div>
+    </section>
+
+    <section class="mission section-shell" id="missao" aria-labelledby="mission-title">
+      <div class="section-kicker reveal"><span class="chapter-num">02</span><span>A MISSÃO</span><span class="line"></span><span>TERRA + ÓRBITA</span></div>
+      <div class="mission-layout"><div class="reveal"><p class="eyebrow muted">CADA ESCOLHA DEIXA RAÍZES.</p><h2 id="mission-title">A próxima safra muda.<br>O seu <em>solo fica.</em></h2></div><div class="mission-copy reveal"><p>Depois da soja, a próxima escolha começa pelo histórico do seu talhão.</p><p>O Rotare compara alternativas com os pesos que <strong>você</strong> dá a solo, risco climático, água e renda relativa.</p></div></div>
+      <div class="mission-evidence reveal" aria-label="Dados que sustentam o Rotare"><article><strong>30<span>safras</span></strong><h3>Clima de referência</h3><p>Chuva diária e temperatura no cálculo das rotações.</p><small>CHIRPS + NASA POWER</small></article><article><strong>132<span>meses</span></strong><h3>Vegetação observada</h3><p>De julho de 2014 a junho de 2025 para reconhecer ciclos no talhão.</p><small>NASA MODIS · 250 m</small></article><article><strong>3<span>anos</span></strong><h3>Por sequência de rotação</h3><p>Alternativas avaliadas por solo, risco climático, água e renda relativa.</p><small>4 CRITÉRIOS · PESOS DEFINIDOS POR VOCÊ</small></article></div><p class="mission-data-note">Base de dados preparada para Sorriso, MT. Observações e simulações apoiam a decisão junto ao conhecimento de campo.</p>
+    </section>
+
+    <section class="exploration section-shell" id="exploracao" aria-labelledby="explore-title">
+      <div class="section-kicker reveal"><span class="chapter-num">03</span><span>EXPLORE OS DADOS</span><span class="line"></span><span>UMA TERRA. MUITAS CAMADAS.</span></div>
+      <div class="section-heading reveal"><h2 id="explore-title">O campo tem uma história.<br><em>Vamos olhar mais de perto?</em></h2><p>Alterne as camadas e percorra o histórico de vegetação de uma região real de Sorriso, Mato Grosso.</p></div>
+      <div class="data-signals reveal" aria-label="Indicadores reais da região de Sorriso">
+        <article class="data-signal active" data-signal="vegetacao"><div class="signal-label"><svg class="icon"><use href="#i-leaf"/></svg><span>VIGOR DA VEGETAÇÃO</span><small id="signal-date">FEV. 2024</small></div><div class="signal-value"><strong id="signal-ndvi">—</strong><span>NDVI médio</span></div><svg class="signal-chart" viewBox="0 0 280 58" aria-label="Histórico do NDVI médio de fevereiro entre 2015 e 2024" role="img"><path class="signal-chart-area"/><path id="signal-ndvi-path" class="signal-chart-line"/><line class="signal-chart-cursor" x1="270" x2="270" y1="4" y2="54"/><circle class="signal-chart-point" r="3" cx="270" cy="29"/></svg><span class="signal-source">NASA MODIS · grade de 250 m</span></article>
+        <article class="data-signal" data-signal="solo"><div class="signal-label"><svg class="icon"><use href="#i-drop"/></svg><span>TEXTURA DO SOLO</span><small>0–30 CM</small></div><div class="signal-value"><strong id="signal-clay">—</strong><span>% de argila</span></div><div class="signal-gauge"><span class="signal-gauge-fill" id="clay-gauge"></span><i></i><i></i><i></i><i></i></div><div class="signal-scale"><span>0%</span><span>100%</span></div><span class="signal-source">ISRIC SoilGrids 2.0 · média regional</span></article>
+        <article class="data-signal" data-signal="relevo"><div class="signal-label"><svg class="icon"><use href="#i-chart"/></svg><span>FORMAS DO TERRENO</span><small>DECLIVIDADE</small></div><div class="signal-value"><strong id="signal-slope">—</strong><span>% de inclinação média</span></div><svg class="signal-terrain" viewBox="0 0 280 58" aria-hidden="true"><path d="M0 48q35-19 70-10t70-10 70-3 70-20M0 57q35-19 70-10t70-10 70-3 70-20M0 39q35-19 70-10t70-10 70-3 70-20"/><path class="terrain-flow" d="M0 48q35-19 70-10t70-10 70-3 70-20"/></svg><span class="signal-source">NASA SRTM · grade de ~90 m</span></article>
+      </div>
+      <p class="regional-method">Métricas agregadas da área de Sorriso. NDVI de fevereiro; solo e relevo calculados sobre as células válidas de cada grade.</p>
+
+    </section>
+
+    <section class="data-map-scene section-shell" id="dados-mapa" aria-labelledby="map-scene-title">
+      <div class="map-scene-heading"><p class="eyebrow">DADOS DA MESMA REGIÃO / SORRISO, MT</p><h2 id="map-scene-title">Uma terra. <em>Muitas camadas.</em></h2></div>
+      <div class="explorer reveal">
+        <div class="map-view"><div class="map-topbar"><span><i class="status-dot"></i> SORRISO / MATO GROSSO</span><span>RECORTE REAL DO PROJETO</span></div><div class="map-image-area"><img id="layer-image" src="landing/assets/ndvi-2024.webp" width="768" height="768" alt="NDVI regional em fevereiro de 2024, derivado de observações MODIS" loading="lazy"><div class="map-grid" aria-hidden="true"></div><span class="map-corner corner-tl"></span><span class="map-corner corner-tr"></span><span class="map-corner corner-bl"></span><span class="map-corner corner-br"></span><span class="map-coordinate coord-top">12°28′48″ S</span><span class="map-coordinate coord-bottom">56°04′12″ W</span><div class="map-center" aria-hidden="true">+</div><div class="map-badge"><svg class="icon"><use href="#i-orbit"/></svg><div><small id="map-badge-source">NASA MODIS</small><strong id="map-badge-label">Vegetação vista do espaço</strong></div></div><span class="north" aria-hidden="true">N<span>↑</span></span></div><div class="map-legend"><span id="legend-min">Menor vigor</span><div id="legend-gradient"></div><span id="legend-max">Maior vigor</span><span class="no-data"><i></i> Sem dado</span></div></div>
+        <div class="layer-panel"><p class="eyebrow">ESCOLHA SUA PERSPECTIVA</p><div class="layer-tabs" role="tablist" aria-label="Camadas ambientais" aria-orientation="horizontal"><button class="layer-tab active" id="tab-vegetacao" data-layer="vegetacao" role="tab" aria-selected="true" aria-controls="layer-details" tabindex="0" type="button"><span class="tab-icon"><svg class="icon"><use href="#i-leaf"/></svg></span><span><strong>Vegetação</strong><small>O ritmo das safras</small></span><span class="tab-number">01</span></button><button class="layer-tab" id="tab-solo" data-layer="solo" role="tab" aria-selected="false" aria-controls="layer-details" tabindex="-1" type="button"><span class="tab-icon"><svg class="icon"><use href="#i-drop"/></svg></span><span><strong>Solo</strong><small>A base de toda decisão</small></span><span class="tab-number">02</span></button><button class="layer-tab" id="tab-relevo" data-layer="relevo" role="tab" aria-selected="false" aria-controls="layer-details" tabindex="-1" type="button"><span class="tab-icon"><svg class="icon"><use href="#i-chart"/></svg></span><span><strong>Relevo</strong><small>As formas da sua terra</small></span><span class="tab-number">03</span></button></div>
+          <div id="layer-details" role="tabpanel" aria-labelledby="tab-vegetacao" tabindex="0" aria-live="polite"><h3 id="layer-title">O verde também conta histórias.</h3><p id="layer-description">O NDVI indica o vigor da vegetação. A variação ao longo do tempo ajuda a reconhecer ciclos de cultivo; a cultura inferida precisa ser confirmada pelo agricultor.</p><div class="source-chip"><i></i><span id="layer-source">NASA MODIS · 250 m</span></div></div>
+          <div class="year-control"><div><label for="ndvi-year">FEVEREIRO DE</label><output id="year-output" for="ndvi-year">2024</output></div><input id="ndvi-year" type="range" min="2015" max="2024" value="2024" step="1" aria-label="Ano da observação de vegetação"><div class="range-labels"><span>2015</span><span>ARRASTE PARA VOLTAR NO TEMPO</span><span>2024</span></div></div>
+          <p class="data-note" id="layer-note">Máximo mensal de fevereiro. Mesma área em todos os anos. Resolução de aproximadamente 250 m, sem detalhe de linhas de plantio.</p>
+        </div>
+      </div><p class="explorer-caption"><span>ÁREA REGIONAL · 12,48° A 12,72° S / 55,83° A 56,07° W</span><span>Dados pré-processados do repositório. Cores aplicadas para visualização.</span></p>
+    </section>
+
+    <section class="product-story" id="jornada" aria-labelledby="journey-title">
+      <h2 class="sr-only" id="journey-title">Do seu talhão à próxima decisão, em quatro etapas.</h2>
+      <div class="story-sticky">
+        <div class="story-heading"><p class="eyebrow"><span class="chapter-num">04</span> DO TALHÃO À PRÓXIMA ESCOLHA</p><span>CONHEÇA O ROTARE POR DENTRO</span></div>
+        <div class="story-stage" id="story-stage">
+          <article class="story-scene is-active" aria-label="Etapa 1: delimitar o talhão">
+            <div class="story-copy"><span>01 / ENCONTRE O SEU LUGAR</span><h3>Sua terra.<br><em>O ponto de partida.</em></h3><p>Encontre a propriedade no satélite e delimite o talhão. A área e o perímetro acompanham cada ajuste no contorno.</p></div>
+            <div class="story-product"><div class="story-window"><div class="story-window-bar"><i></i> ROTARE / LOCALIZAR + DELIMITAR<span>PLATAFORMA</span></div><div class="story-image"><img src="landing/assets/screen-local.webp" data-screen="screen-local.webp" width="1280" height="720" alt="Tela real de delimitação do Rotare, com o contorno do Talhão Sede e sua área de 317,7 hectares." loading="lazy"><button class="story-enlarge" type="button" aria-label="Ampliar tela de delimitação">Ampliar tela <svg class="icon"><use href="#i-external"/></svg></button></div></div><p class="story-caption">TELA REAL DA PLATAFORMA · TALHÃO SEDE / SORRISO, MT</p></div>
+          </article>
+          <article class="story-scene" aria-label="Etapa 2: conhecer o histórico">
+            <div class="story-copy"><span>02 / LEIA O QUE A TERRA CONTA</span><h3>O passado<br><em>ganha contexto.</em></h3><p>Vegetação, solo, clima e relevo no mesmo Raio-X. Conheça o histórico observado e confirme o que foi plantado.</p></div>
+            <div class="story-product"><div class="story-window"><div class="story-window-bar"><i></i> ROTARE / RAIO-X DO TALHÃO<span>PLATAFORMA</span></div><div class="story-image"><img src="landing/assets/screen-raiox.webp" data-screen="screen-raiox.webp" width="1280" height="720" alt="Tela real do Raio-X do Rotare, com a série histórica de NDVI e a origem dos dados do talhão." loading="lazy"><button class="story-enlarge" type="button" aria-label="Ampliar tela do Raio-X">Ampliar tela <svg class="icon"><use href="#i-external"/></svg></button></div></div><p class="story-caption">HISTÓRICO OBSERVADO · FONTES E INCERTEZAS VISÍVEIS</p></div>
+          </article>
+          <article class="story-scene" aria-label="Etapa 3: definir prioridades">
+            <div class="story-copy"><span>03 / DIGA O QUE IMPORTA</span><h3>Cada campo.<br><em>Uma prioridade.</em></h3><p>Solo, risco climático, água e renda relativa: você define os pesos e as restrições que fazem sentido na propriedade.</p></div>
+            <div class="story-product"><div class="story-window"><div class="story-window-bar"><i></i> ROTARE / SUAS PRIORIDADES<span>PLATAFORMA</span></div><div class="story-image"><img src="landing/assets/screen-prioridades.webp" data-screen="screen-prioridades.webp" width="1280" height="720" alt="Tela real de preferências do Rotare, com pesos para solo, risco, água e rentabilidade relativa." loading="lazy"><button class="story-enlarge" type="button" aria-label="Ampliar tela de prioridades">Ampliar tela <svg class="icon"><use href="#i-external"/></svg></button></div></div><p class="story-caption">PESOS AJUSTÁVEIS · IRRIGAÇÃO, MAQUINÁRIO E CULTURAS</p></div>
+          </article>
+          <article class="story-scene" aria-label="Etapa 4: comparar rotações">
+            <div class="story-copy"><span>04 / ENSAIE AS PRÓXIMAS SAFRAS</span><h3>Mais caminhos.<br><em>Uma decisão sua.</em></h3><p>Compare sequências de três anos e explore cenários climáticos. Entenda o que muda antes de escolher o próximo passo.</p></div>
+            <div class="story-product"><div class="story-window"><div class="story-window-bar"><i></i> ROTARE / COMPARAR ROTAÇÕES<span>PLATAFORMA</span></div><div class="story-image"><img src="landing/assets/screen-rotacoes.webp" data-screen="screen-rotacoes.webp" width="1280" height="720" alt="Tela real de comparação do Rotare, com alternativas de rotação e simulação condicional de chuva e temperatura." loading="lazy"><button class="story-enlarge" type="button" aria-label="Ampliar tela de rotações">Ampliar tela <svg class="icon"><use href="#i-external"/></svg></button></div></div><p class="story-caption">RESULTADO DO TALHÃO SEDE · CENÁRIOS CONDICIONAIS</p></div>
+          </article>
+        </div>
+        <div class="story-chapters" aria-label="Etapas do Rotare"><span class="active"><b>01</b> Seu talhão</span><span><b>02</b> Histórico</span><span><b>03</b> Prioridades</span><span><b>04</b> Rotações</span></div>
+      </div>
+      <dialog class="story-lightbox" aria-label="Tela ampliada da plataforma"><button class="story-close" type="button">Fechar ×</button><img alt=""><p>Captura real da plataforma Rotare. Os resultados exibidos correspondem ao Talhão Sede, em Sorriso, MT.</p></dialog>
+    </section>
+
+<section class="science section-shell" id="ciencia" aria-labelledby="science-title"><div class="section-kicker reveal"><span class="chapter-num">05</span><span>CIÊNCIA ABERTA</span><span class="line"></span><span>CONFIANÇA TEM ORIGEM</span></div><div class="science-heading reveal"><h2 id="science-title">Por trás de cada escolha,<br><em>um dado com história.</em></h2><p>Observações da Terra e métodos publicados sustentam o motor. Cada resultado vem acompanhado de fontes, hipóteses e limites.</p></div><div class="source-list reveal"><a href="https://power.larc.nasa.gov/" target="_blank" rel="noopener noreferrer"><span class="source-number">01 / CLIMA</span><span><strong>NASA POWER + GPM IMERG</strong><small>Temperatura, balanço de água e precipitação.</small></span><svg class="icon"><use href="#i-external"/></svg></a><a href="https://smap.jpl.nasa.gov/" target="_blank" rel="noopener noreferrer"><span class="source-number">02 / ÁGUA</span><span><strong>NASA SMAP</strong><small>Umidade do solo como contexto regional.</small></span><svg class="icon"><use href="#i-external"/></svg></a><a href="https://hls.gsfc.nasa.gov/" target="_blank" rel="noopener noreferrer"><span class="source-number">03 / VEGETAÇÃO</span><span><strong>NASA HLS + MODIS</strong><small>Imagens e séries de vegetação para explorar o histórico.</small></span><svg class="icon"><use href="#i-external"/></svg></a><a href="https://www.isric.org/explore/soilgrids" target="_blank" rel="noopener noreferrer"><span class="source-number">04 / TERRA</span><span><strong>SoilGrids + SRTM + MapBiomas</strong><small>Estimativas do solo, relevo e contexto de uso da terra.</small></span><svg class="icon"><use href="#i-external"/></svg></a></div><p class="science-footnote">Dados rastreáveis. Cenários condicionais. A decisão continua com você e o agrônomo.</p></section>
+
+<section class="final-cta" id="encerramento" aria-labelledby="cta-title"><div class="cta-orbit" aria-hidden="true"></div><div class="section-shell"><p class="eyebrow">DA ÓRBITA À SUA PRÓXIMA SAFRA</p><h2 id="cta-title">O espaço amplia o olhar.<br><em>Agora, a decisão é sua.</em></h2><div class="handoff-loader" role="progressbar" aria-label="Transição para a plataforma" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" data-state="loading">
+  <svg class="handoff-network" viewBox="0 0 360 148" aria-hidden="true"><g class="handoff-tracks"><path d="M82 27H93L146 65"/><path d="M278 27H267L214 65"/><path d="M82 121H93L146 85"/><path d="M278 121H267L214 85"/></g><g class="handoff-signals"><path style="--route:0" d="M82 27H93L146 65"/><path style="--route:1" d="M278 27H267L214 65"/><path style="--route:2" d="M82 121H93L146 85"/><path style="--route:3" d="M278 121H267L214 85"/></g><circle class="handoff-ring-track" cx="180" cy="74" r="47"/><circle class="handoff-ring-progress" cx="180" cy="74" r="47" pathLength="100" transform="rotate(-90 180 74)" stroke-dasharray="100" stroke-dashoffset="100"/></svg>
+  <span class="handoff-node handoff-node-soil"><svg class="icon"><use href="#i-leaf"/></svg><span>SOLO</span></span>
+  <span class="handoff-node handoff-node-risk"><span>RISCO</span><svg class="icon"><use href="#i-shield"/></svg></span>
+  <span class="handoff-node handoff-node-water"><svg class="icon"><use href="#i-drop"/></svg><span>ÁGUA</span></span>
+  <span class="handoff-node handoff-node-income"><span>RENDA</span><svg class="icon"><use href="#i-chart"/></svg></span>
+  <span class="handoff-hub"><img src="img/rotare-simbolo.svg" width="50" height="50" alt=""><svg class="handoff-ready" viewBox="0 0 20 20" aria-hidden="true"><path d="m5 10 3 3 7-7"/></svg></span>
+  <span class="handoff-percentage" aria-hidden="true">0%</span>
+</div>
+<p class="closing-status"><i></i> Abrindo o Rotare…</p><span class="closing-credit">DATANAUTS BRASIL · FIELD SHIFT / SPACE APPS 2026</span><small class="closing-disclosure">Apresentação criada com assistência de IA. Capturas da plataforma e dados reais de Sorriso, MT.</small></div></section>
+  </main>
+</body>
+</html>

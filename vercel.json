@@ -1,7 +1,8 @@
 {
   "cleanUrls": true,
   "rewrites": [
-    { "source": "/", "destination": "/app/index.html" },
+    { "source": "/", "destination": "/app/apresentacao.html" },
+    { "source": "/explorar", "destination": "/app/plataforma.html" },
     { "source": "/(.*)", "destination": "/app/$1" }
   ]
 }

@@ -1,0 +1,17 @@
+Earth texture
+Source: three.js r160 example assets, earth_atmos_2048.jpg
+https://raw.githubusercontent.com/mrdoob/three.js/r160/examples/textures/planets/earth_atmos_2048.jpg
+Stored locally as earth-day.jpg. Used for an illustrative orbital rendering, without live telemetry.
+
+Orbital approach to Sorriso
+Esri World Imagery export, demonstration region: -56.07,-12.72,-55.83,-12.48.
+Source: Esri, Vantor, Earthstar Geographics, and the GIS User Community.
+https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer
+Stored locally as sorriso-orbital.jpg. Imagery is a visual reference, not a live observation or an analytical result.
+
+Regional data maps
+Derived from app/data/regiao.js by app/landing/prepare-assets.py.
+NASA MODIS (vegetation), ISRIC SoilGrids (clay), NASA SRTM (terrain slope).
+Sources, resolution and dates are described next to the maps in the presentation.
+
+Product walkthrough: screen-local.webp, screen-raiox.webp, screen-prioridades.webp, screen-rotacoes.webp. Screenshots captured from the existing local Rotare platform on 2026-11-14, using Talhão Sede, Sorriso/MT, default priorities and reference climate. Actual application output; images are compressed without changing the displayed values.

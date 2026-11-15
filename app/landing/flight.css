@@ -1,0 +1,53 @@
+/* Abertura cinematográfica: cenários em perspectiva e aproximação orbital. */
+html.intro-playing,html.intro-playing body{overflow:hidden!important;scroll-behavior:auto!important}
+.flight-intro{position:fixed;inset:0;z-index:100;background:#050910;color:var(--paper);overflow:hidden;isolation:isolate;--camera-z:0px;--corridor-opacity:1;--earth-scale:.7;--earth-x:13vw;--earth-y:-7vh;--earth-opacity:0;--earth-roll:-14deg;--cockpit-opacity:0;--ground-opacity:0;--ground-scale:1.4;--ground-tilt:30deg;--sun-opacity:.35;--copy-opacity:1;--copy-y:0px;--copy-blur:0px}
+.flight-intro[hidden]{display:none!important}
+.flight-stars,.flight-world,.flight-ground,.flight-vignette,.flight-grain,.flight-corridor,.flight-cockpit{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.flight-stars{z-index:0;opacity:.85}
+.flight-sun{position:absolute;left:54%;top:-10%;width:65vw;height:65vw;background:radial-gradient(circle,#e9c46a1f 0,#e9c46a08 28%,transparent 65%);transform:translate(-50%,-20%);opacity:var(--sun-opacity);z-index:0}
+.flight-world{z-index:1;opacity:var(--earth-opacity);transform:translate3d(var(--earth-x),var(--earth-y),0);will-change:transform,opacity}
+.flight-earth{position:absolute;left:50%;top:50%;width:min(95vw,108svh);height:min(95vw,108svh);transform:translate(-50%,-50%) scale(var(--earth-scale)) rotate(var(--earth-roll));transform-origin:center;border-radius:50%;will-change:transform}
+.flight-earth:before{position:absolute;content:"";inset:5%;border-radius:50%;box-shadow:0 0 90px #4c8df619}
+.flight-earth-canvas{display:block;width:100%;height:100%}
+.flight-corridor{z-index:3;perspective:780px;perspective-origin:50% 41%;opacity:var(--corridor-opacity);overflow:hidden;background:linear-gradient(90deg,#070b13cc 0,transparent 22%,transparent 78%,#070b13cc 100%);will-change:opacity}
+.flight-camera{position:absolute;inset:0;transform-style:preserve-3d;transform:translateZ(var(--camera-z));will-change:transform}
+.tunnel-frame{position:absolute;left:7%;top:-3%;width:86%;height:106%;border:25px solid #19212b;border-bottom-width:57px;border-top-width:36px;transform:translateZ(calc(var(--depth) * -420px));box-shadow:inset 0 0 0 2px #93a1ac24,0 0 0 12px #070b12,0 0 0 14px #5c6e7b44;backface-visibility:hidden;background:linear-gradient(90deg,#e9c46a05,transparent 16%,transparent 84%,#e9c46a05)}
+.tunnel-frame:before,.tunnel-frame:after{position:absolute;content:"";top:21%;bottom:16%;width:5px;background:#d7d4b8;box-shadow:0 0 18px #e9c46a99,0 0 55px #e9c46a33;border-radius:2px}
+.tunnel-frame:before{left:-13px}.tunnel-frame:after{right:-13px}
+.tunnel-frame>i{position:absolute;top:-23px;left:34%;width:32%;height:7px;background:#ece6ce;box-shadow:0 0 20px #e9c46a77,0 0 55px #e9c46a33}
+.tunnel-floor{position:absolute;left:-50%;right:-50%;top:88%;height:3500px;transform-origin:center top;transform:rotateX(88deg);background:repeating-linear-gradient(0deg,transparent 0 90px,#a1b8c01f 91px 92px),repeating-linear-gradient(90deg,#121c27 0 90px,#46556188 91px 92px);border:8px solid #e9c46a66;box-shadow:0 0 35px #e9c46a1a}
+.flight-cockpit{z-index:4;opacity:var(--cockpit-opacity);transform:scale(var(--cockpit-scale,1.07));will-change:opacity,transform}
+.flight-ground{z-index:2;opacity:var(--ground-opacity);overflow:hidden;perspective:1200px;background:#111c15;will-change:opacity}
+.flight-ground-image{width:100%;height:100%;object-fit:cover;transform:scale(var(--ground-scale)) rotateX(var(--ground-tilt)) rotate(-7deg);filter:saturate(.77) brightness(.72);will-change:transform}
+.flight-ground-grid{position:absolute;inset:0;background-image:linear-gradient(#e9c46a12 1px,transparent 1px),linear-gradient(90deg,#e9c46a12 1px,transparent 1px);background-size:20% 25%;mask-image:linear-gradient(transparent,#0008 50%,transparent)}
+.flight-location{position:absolute;top:42%;left:52%;font:9px var(--mono);color:#e6d49e;letter-spacing:2px;text-shadow:0 2px 10px #000;display:grid;grid-template-columns:8px 1fr;align-items:center;gap:7px 12px;opacity:var(--location-opacity,0)}
+.flight-location i{width:5px;height:5px;background:var(--gold);border-radius:50%;box-shadow:0 0 0 7px #e9c46a20,0 0 0 17px #e9c46a0c}
+.flight-location>span{grid-column:2;font:10px var(--body);letter-spacing:0;color:#c6c9b8}
+.flight-vignette{z-index:5;background:radial-gradient(ellipse at 50% 38%,transparent 15%,#04070c30 55%,#04070c9c 100%),linear-gradient(0deg,#04070cbb,transparent 42%,transparent 75%,#04070c55);pointer-events:none}
+.flight-grain{z-index:6;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Cpath fill='%23fff' opacity='.25' filter='url(%23n)' d='M0 0h180v180H0z'/%3E%3C/svg%3E");opacity:.045;mix-blend-mode:screen}
+.flight-header{position:absolute;z-index:10;left:4.5%;right:4.5%;top:25px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.flight-brand{display:flex;align-items:center;gap:9px}.flight-brand>span{font:600 31px/1 var(--title);letter-spacing:-1px}.flight-brand>span>span{color:var(--gold)}.flight-brand>small{font:6px var(--mono);letter-spacing:1.7px;color:#b9b9ad;border-left:1px solid #f4f1ea24;padding:5px 0 5px 18px;margin-left:10px}
+
+
+.flight-copy{position:absolute;z-index:8;left:7%;bottom:12%;max-width:780px;pointer-events:none;opacity:var(--copy-opacity);transform:translateY(var(--copy-y));filter:blur(var(--copy-blur));will-change:opacity,transform}
+.flight-eyebrow{font:8px/1.6 var(--mono);letter-spacing:2.2px;color:var(--gold);margin:0 0 19px;display:flex;align-items:center;gap:11px}.flight-eyebrow:before{content:"";display:block;width:25px;height:1px;background:var(--gold)}
+.flight-title{font:500 clamp(42px,5.7vw,82px)/1.03 var(--title);letter-spacing:-2px;max-width:800px;color:var(--paper);text-wrap:balance;text-shadow:0 5px 30px #0003}
+.flight-subtitle{font-size:13px;line-height:1.8;color:#c0c3c7;max-width:520px;margin-top:20px;min-height:24px;text-shadow:0 1px 10px #0007}
+.flight-subtitle:after{content:"";width:1px;height:13px;background:#e9c46a99;display:inline-block;vertical-align:middle;margin-left:4px;animation:flight-cursor .8s step-end infinite}
+.flight-credit{position:absolute;bottom:14px;right:4.5%;z-index:10;font:7px/1.7 var(--mono);color:#c4c8b4;letter-spacing:.2px;text-align:right;max-width:650px;text-shadow:0 1px 4px #000}
+.flight-data{position:absolute;top:18%;right:9%;display:flex;flex-direction:column;gap:24px;z-index:4}
+.flight-datum{border-left:1px solid #e9c46a66;padding-left:17px;text-shadow:0 2px 15px #000;opacity:0;min-width:170px}
+.flight-datum>small{font:7px/1.7 var(--mono);color:#d8c790;letter-spacing:1px;display:block}
+.flight-datum>strong{font:400 35px/1.2 var(--mono);color:var(--paper);display:block;margin:6px 0 5px;letter-spacing:-1px}
+.flight-datum>span{font-size:9px;color:#c6cec3}
+.flight-intro[data-scene="sorriso"] .flight-datum{animation:flight-data-arrive .8s calc(.6s + var(--signal-order)*.6s) cubic-bezier(.16,1,.3,1) both}
+html.intro-playing:not(.intro-handoff) .site-header,html.intro-playing:not(.intro-handoff) main,html.intro-playing:not(.intro-handoff) .site-footer,html.intro-playing:not(.intro-handoff) .skip-link{visibility:hidden}
+html.intro-pending main *,html.intro-pending main *:before,html.intro-pending main *:after,html.intro-playing:not(.intro-handoff) main *,html.intro-playing:not(.intro-handoff) main *:before,html.intro-playing:not(.intro-handoff) main *:after{animation-play-state:paused!important}
+@keyframes flight-data-arrive{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+.flight-intro.is-exiting{animation:flight-exit .9s ease-in-out forwards;pointer-events:none}
+
+@keyframes flight-cursor{50%{opacity:0}}
+@keyframes flight-exit{to{opacity:0}}
+@media(max-width:700px){.flight-header{left:6%;right:6%;top:22px}.flight-brand>small{display:none}.flight-brand>span{font-size:28px}.flight-brand>img{height:30px;width:30px}.flight-copy{left:7%;right:7%;bottom:13%;max-width:none}.flight-eyebrow{font-size:6px;letter-spacing:1.3px;margin-bottom:17px}.flight-title{font-size:clamp(39px,9vw,62px);line-height:1.07;letter-spacing:-1.2px}.flight-subtitle{font-size:11px;max-width:330px;margin-top:17px;min-height:40px}.flight-earth{width:120vw;height:120vw}.flight-location{left:43%;top:41%;font-size:7px;letter-spacing:1px}.flight-location>span{font-size:8px}.flight-credit{font-size:5px;left:7%;right:7%;bottom:12px}.flight-corridor{perspective:500px;perspective-origin:50% 35%}.tunnel-frame{left:-4%;width:108%;border-width:15px;border-bottom-width:40px}.tunnel-frame:before{left:-8px}.tunnel-frame:after{right:-8px}.tunnel-frame>i{top:-10px;height:4px}.flight-cockpit{width:150%;left:-25%}}
+@media(prefers-reduced-motion:reduce){.flight-intro{display:none!important}}
+@media(max-width:700px){.flight-data{top:24%;left:7%;right:7%;display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.flight-datum{min-width:0;padding-left:9px}.flight-datum>small{font-size:5px;letter-spacing:.3px;min-height:18px}.flight-datum>strong{font-size:25px;margin:7px 0 5px}.flight-datum>span{font-size:7px;line-height:1.5;display:block}.flight-location{top:46%}}
