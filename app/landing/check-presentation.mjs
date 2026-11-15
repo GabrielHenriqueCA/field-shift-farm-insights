@@ -80,38 +80,39 @@ assert.equal(touch.root.dataset.deckScene,'inicio','An enlarged screenshot keeps
 touch.tour.setSuspended(false);touch.wheel();await touch.flush();assert.equal(touch.root.dataset.deckScene,'vegetacao-2015');
 
 const html=readFileSync(new URL('../apresentacao.html',import.meta.url),'utf8');
-assert.ok(!html.includes('flight-skip'));assert.ok(!html.includes('app-link'));assert.ok(!html.includes('motion-toggle'));assert.ok(!html.includes('Pressione Espaço para pausar'));
-assert.ok(!/<a\b[^>]*href="(?:index\.html|plataforma\.html|explorar|app\/index\.html)"/.test(html));
+assert.ok(!html.includes('flight-skip'));assert.ok(!html.includes('motion-toggle'));assert.ok(!html.includes('Pressione Espaço para pausar'));
+// The presentation offers a direct link to the platform; the platform is index.html again.
+assert.ok(html.includes('class="header-platform"'));
 for(const name of ['landing','story','flight'])new vm.Script(readFileSync(new URL(name+'.js',import.meta.url),'utf8'));
 
-// Directory/index entry points must reach the presentation; its destination must never loop back to index.
 const entry=readFileSync(new URL('../index.html',import.meta.url),'utf8');
-const entryScript=entry.match(/<script>([\s\S]*?)<\/script>/)[1];
+assert.ok(entry.includes('id="mapa"'),'index.html is the platform');
+assert.ok(entry.includes('href="apresentacao.html"'),'platform links to the presentation');
+const legacy=readFileSync(new URL('../plataforma.html',import.meta.url),'utf8');
+const legacyScript=legacy.match(/<script>([\s\S]*?)<\/script>/)[1];
 for(const [href,expected] of [
-  ['http://localhost/app/','http://localhost/app/apresentacao.html'],
-  ['http://localhost/app/index.html','http://localhost/app/apresentacao.html'],
-  ['http://localhost/index.html','http://localhost/apresentacao.html'],
-  ['file:///C:/project/app/index.html','file:///C:/project/app/apresentacao.html']
+  ['http://localhost/app/plataforma.html','http://localhost/app/index.html'],
+  ['file:///C:/project/app/plataforma.html','file:///C:/project/app/index.html']
 ]){
   let redirected;
-  vm.runInNewContext(entryScript,{URL,window:{location:{href,replace:url=>{redirected=url;}}}});
+  vm.runInNewContext(legacyScript,{URL,window:{location:{href,search:'',hash:'',replace:url=>{redirected=url;}}}});
   assert.equal(redirected,expected);
 }
 const landing=readFileSync(new URL('landing.js',import.meta.url),'utf8');
-const routing=landing.match(/  const hostedRoot=[\s\S]*?const platformURL=.*?;/)[0];
+const routing=landing.match(/  const platformURL=.*?;/)[0];
 for(const [href,expected] of [
-  ['http://localhost/app/apresentacao.html','http://localhost/app/plataforma.html'],
-  ['http://localhost/apresentacao.html','http://localhost/plataforma.html'],
-  ['http://localhost/','http://localhost/explorar'],
-  ['file:///C:/project/app/apresentacao.html','file:///C:/project/app/plataforma.html']
+  ['http://localhost/app/apresentacao.html','http://localhost/app/'],
+  ['http://localhost/apresentacao.html','http://localhost/'],
+  ['http://localhost/apresentacao','http://localhost/'],
+  ['file:///C:/project/app/apresentacao.html','file:///C:/project/app/index.html']
 ]){
   const url=new URL(href),context={URL,location:{href,pathname:url.pathname,protocol:url.protocol}};
   vm.runInNewContext(routing+'\nresult=platformURL;',context);
   assert.equal(context.result,expected);
 }
-assert.ok(readFileSync(new URL('../plataforma.html',import.meta.url),'utf8').includes('id="mapa"'));
 for(const path of ['../vercel.json','../../vercel.json']){
   const rewrites=JSON.parse(readFileSync(new URL(path,import.meta.url),'utf8')).rewrites;
-  assert.ok(rewrites.find(route=>route.source==='/explorar').destination.endsWith('/plataforma.html'));
+  assert.ok(rewrites.find(route=>route.source==='/explorar').destination.endsWith('/index.html'));
+  assert.ok(!rewrites.some(route=>route.source==='/'&&route.destination.includes('apresentacao')));
 }
 console.log('PASS: manual/automatic scene parity, trackpad, touch, queued gestures, final animation, no pause controls and entry/platform routes.');

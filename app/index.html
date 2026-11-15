@@ -1,16 +1,59 @@
 <!doctype html>
+<!-- Aviso de SI: interface escrita com ajuda de IA (Claude), sob direção do time Datanauts Brasil.
+     Nenhum dado exibido é gerado por IA: os números vêm do motor determinístico e das fontes citadas. -->
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#050910">
-  <meta http-equiv="refresh" content="0;url=apresentacao.html">
-  <title>Rotare · Apresentação</title>
-  <style>html,body{margin:0;min-height:100%;background:#050910}</style>
-  <script>
-    // A pasta app começa pela apresentação; a plataforma abre somente ao final.
-    window.location.replace(new URL('apresentacao.html', window.location.href).href);
-  </script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rotare · Rotação de culturas</title>
+<meta name="description" content="Rotare: compare rotações de culturas de 3 anos para o seu talhão com dados de satélite e simulação climática.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Mono:wght@400;500&family=Fira+Sans+Condensed:wght@500;600;700&family=Fira+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.6.1/dist/maplibre-gl.css">
+<link rel="stylesheet" href="css/rotare.css">
+<link rel="icon" type="image/svg+xml" href="img/favicon.svg">
 </head>
-<body></body>
+<body>
+<div id="mapa" aria-label="Mapa de satélite"></div>
+
+<header class="topo">
+  <div class="marca">
+    <img src="img/rotare-simbolo.svg" width="38" height="38" alt="" class="simbolo">
+    <b>Rotare</b><span>rotação de culturas vista do espaço</span>
+  </div>
+  <nav class="passos" id="passos" aria-label="Etapas"></nav>
+  <a class="btn fantasma mini" id="btn-apresentacao" href="apresentacao.html" title="Ver a apresentação do Rotare"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M10 8l6 4-6 4z"/></svg><span>Apresentação</span></a>
+  <button class="btn fantasma mini" id="btn-como" type="button"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/></svg><span>Como calculamos?</span></button>
+</header>
+
+<aside class="painel" id="painel"><div class="painel-corpo" id="painel-corpo"></div><div class="rodape-painel oculto" id="painel-rodape"></div></aside>
+
+<div class="ferramentas oculto" id="ferramentas" role="toolbar" aria-label="Ferramentas de delimitação"></div>
+<div class="dica-mapa oculto" id="dica-mapa"></div>
+
+<div class="camadas" id="camadas"></div>
+<div class="analise oculto" id="analise"></div>
+<div class="modal oculto" id="modal" role="dialog" aria-modal="true"></div>
+<div class="toast" id="toast" role="status"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.6.1/dist/maplibre-gl.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@turf/turf@7.2.0/turf.min.js"></script>
+<!-- dados pré-processados (coleta/preparar_app.py) -->
+<script src="data/clima.js"></script>
+<script src="data/regiao.js"></script>
+<script src="data/talhoes.js"></script>
+<!-- motor determinístico -->
+<script src="js/motor/catalogo.js"></script>
+<script src="js/motor/balanco.js"></script>
+<script src="js/motor/rotacao.js"></script>
+<script src="js/motor/historico.js"></script>
+<!-- geoprocessamento, mapa, explicação e interface -->
+<script src="js/geo/zonal.js"></script>
+<script src="js/geo/editor.js"></script>
+<script src="js/mapa.js"></script>
+<script src="js/explica.js"></script>
+<script src="js/icones.js"></script>
+<script src="js/app.js"></script>
+</body>
 </html>

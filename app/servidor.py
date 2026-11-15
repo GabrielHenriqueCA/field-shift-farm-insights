@@ -88,12 +88,15 @@ class Rotare(SimpleHTTPRequestHandler):
 
     def do_GET(self):
         u = urlparse(self.path)
-        if u.path in ("/", "/apresentacao", "/apresentacao/"):
+        # "/" abre a plataforma (index.html); a apresentacao fica em /apresentacao.
+        if u.path in ("/apresentacao", "/apresentacao/"):
             self.path = "/apresentacao.html"
             return super().do_GET()
         if u.path in ("/explorar", "/explorar/", "/plataforma", "/plataforma/"):
-            self.path = "/plataforma.html"
-            return super().do_GET()
+            self.send_response(302)
+            self.send_header("Location", "/" + (f"?{u.query}" if u.query else ""))
+            self.end_headers()
+            return
         if u.path == "/api/status":
             try:
                 earth_engine()
@@ -114,11 +117,41 @@ class Rotare(SimpleHTTPRequestHandler):
         return super().do_GET()
 
     def log_message(self, fmt, *args):
-        if "/api/" in (args[0] if args else ""):
-            super().log_message(fmt, *args)
+        try:
+            msg = fmt % args if args else str(fmt)
+            if "/api/" in msg:
+                super().log_message(fmt, *args)
+        except Exception:
+            pass
+
+
+def python_com_earth_engine():
+    """Se este Python nao tem earthengine-api, procura o venv da coleta que tem."""
+    try:
+        import ee  # noqa: F401
+        return None
+    except ImportError:
+        pass
+    import os
+    candidatos = [os.environ.get("ROTARE_PYTHON", ""),
+                  AQUI.parent.parent / "codigo" / "rotare-coletav2" / "coleta" / ".venv" / "Scripts" / "python.exe",
+                  AQUI.parent / "coleta" / ".venv" / "Scripts" / "python.exe",
+                  AQUI.parent / ".venv" / "Scripts" / "python.exe"]
+    for c in candidatos:
+        if c and Path(c).is_file() and Path(c).resolve() != Path(sys.executable).resolve():
+            return str(c)
+    return None
 
 
 if __name__ == "__main__":
+    outro = python_com_earth_engine()
+    if outro:
+        import subprocess
+        print(f"Este Python nao tem o Earth Engine; reabrindo com {outro}")
+        try:
+            sys.exit(subprocess.call([outro, str(Path(__file__).resolve()), *sys.argv[1:]]))
+        except KeyboardInterrupt:
+            sys.exit(0)
     porta = int(sys.argv[1]) if len(sys.argv) > 1 else 8765
     print(f"Rotare em http://127.0.0.1:{porta}  (Ctrl+C para parar)")
     ThreadingHTTPServer(("127.0.0.1", porta), Rotare).serve_forever()
