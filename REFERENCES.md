@@ -95,8 +95,8 @@ No NASA logo, flag or mission identifier is used in these images.
 | `app/landing/assets/screen-*.webp` and `assets/img/app/*.jpg` | Screenshots of the working Rotare platform | Real application output |
 | `app/landing/assets/earth-day.jpg` | three.js r160 example texture (earth_atmos_2048.jpg) | MIT License, https://github.com/mrdoob/three.js |
 | `app/landing/assets/sorriso-orbital.jpg` | Esri World Imagery export of the demo region | Imagery © Esri, Maxar, Earthstar Geographics and the GIS User Community |
-| `app/landing/assets/rotare-ambient.mp3` and the demo video soundtrack | "Ambient Space Cinematic" by Viacheslav Starostin, https://pixabay.com/music/ambient-ambient-space-cinematic-music-370754/ | Pixabay Content License (free use, no attribution required; credited anyway). Shortened and volume-normalised. Used in the presentation and in the 29-second demo video |
-| 29-second demo video | Screen captures of the working Rotare platform, edited by the team, with English subtitles | Carries a visible "Made with SI" label; no AI-generated voice |
+| `app/landing/assets/rotare-ambient.mp3` and the demo video soundtrack | "Ambient Space Cinematic" by Viacheslav Starostin, https://pixabay.com/music/ambient-ambient-space-cinematic-music-370754/ | Pixabay Content License (free use, no attribution required; credited anyway). Shortened and volume-normalised. Used in the presentation and as background music in the demo video |
+| Demo video (29.5 s) | Narrated on camera by team member Gabriel Henrique in his own recorded voice, over real screen captures of the working Rotare platform; edited by the team, with English subtitles | Carries a visible "Made with SI" label; the voice is real, not AI-generated or AI-translated |
 | `app/img/og-rotare.jpg` (link preview) | Crop of a real platform screenshot | Real application output |
 | Fonts Fira Sans, Fira Sans Condensed and Fira Mono | Google Fonts, https://fonts.google.com/ | SIL Open Font License 1.1 |
 
