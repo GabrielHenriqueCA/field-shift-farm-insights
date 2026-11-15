@@ -76,15 +76,8 @@ def escrever_js(nome, var, obj):
 # Earth Engine
 # ------------------------------------------------------------------------------------------
 def ee_init():
-    import ee
-    proj = os.environ.get("EE_PROJECT")
-    env = Path(__file__).with_name(".env")
-    if not proj and env.exists():
-        for l in env.read_text(encoding="utf-8").splitlines():
-            if l.startswith("EE_PROJECT="):
-                proj = l.split("=", 1)[1].strip().strip('"')
-    ee.Initialize(project=proj)
-    return ee
+    """Mesma inicializacao do app (local ou Service Account): fica centralizada em grades.ee_init."""
+    return __import__("grades").ee_init()
 
 
 def grade(dx):
