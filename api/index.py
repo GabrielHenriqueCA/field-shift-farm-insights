@@ -27,3 +27,7 @@ class handler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.end_headers()
         self.wfile.write(b'{"erro": "Endpoint nao encontrado. Use /api/status ou /api/pacote"}')
+
+
+# Compatibilidade caso o runtime busque por app
+app = handler
