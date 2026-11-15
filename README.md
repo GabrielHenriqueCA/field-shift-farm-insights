@@ -91,7 +91,7 @@ The platform runs in the phone browser with the same journey. The panels open as
 
 ## 🏗 How It Works
 
-Rotare is a static website with two entry points: the pitch presentation (`/`, [`app/apresentacao.html`](app/apresentacao.html)) and the platform (`/explorar`, [`app/plataforma.html`](app/plataforma.html)). All analysis runs in the browser. There is no backend and no AI in the calculations.
+Rotare is a static website with two entry points: the website (`/`, [`app/apresentacao.html`](app/apresentacao.html)) and the platform (`/explorar`, [`app/plataforma.html`](app/plataforma.html)). All analysis runs in the browser. There is no backend and no AI in the calculations.
 
 ```mermaid
 flowchart TD
