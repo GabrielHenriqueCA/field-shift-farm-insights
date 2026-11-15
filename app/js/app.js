@@ -42,6 +42,7 @@
       map.on("mouseenter", "demos-fill", () => { if (S.passo === "local") map.getCanvas().style.cursor = "pointer"; });
       map.on("mouseleave", "demos-fill", () => { if (S.passo === "local") map.getCanvas().style.cursor = ""; });
       map.on("click", "ed-fill", (e) => { if (S.res && editor.modo !== "editar") popupTalhao(e.lngLat); });
+      instalarMenuContexto();
       renderCamadas();
     });
     $("#btn-como").onclick = () => modal(comoCalculamos());
@@ -122,6 +123,7 @@
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" opacity=".5"><path d="M9 6l6 6-6 6"/></svg></button>`;
       }).join("")}</div>
       <div class="aviso">Na região de demonstração ${G ? `(${esc(R.zonal.regiaoPadrao().nome)}, retângulo tracejado azul)` : ""} os dados já estão prontos. Em qualquer outro lugar, o Rotare busca ao vivo NDVI, solo, relevo, uso do solo, chuva e temperatura para o seu talhão (cerca de 20 s na primeira vez).</div>
+      <div class="aviso dica-ctx"><b>Dica:</b> clique com o botão direito em qualquer ponto do mapa (ou toque longo no celular) para marcar um talhão de 25, 100 ou 400 ha ali, ou começar a desenhar a partir dele.</div>
     </section>`;
     $("#ir").onclick = () => irParaCoordenada(+$("#lat").value, +$("#lon").value);
     $$("[data-demo]").forEach((b) => (b.onclick = () => carregarDemo(b.dataset.demo)));
@@ -156,6 +158,105 @@
       if (x.demo) carregarDemo(x.demo); else { $("#lat").value = x.lat.toFixed(5); $("#lon").value = x.lon.toFixed(5); irParaCoordenada(x.lat, x.lon, x.nome); }
     }));
     if (imediato && itens.length === 1) $$("button", box)[0].click();
+  }
+
+  // ===================================================================== menu do botão direito
+  // Clique direito no mapa (ou toque longo no celular): escolher o lugar e já marcar ou desenhar o talhão ali.
+  function instalarMenuContexto() {
+    let desce = null, toque = null;
+    map.getCanvas().addEventListener("mousedown", (e) => { if (e.button === 2) desce = [e.clientX, e.clientY]; });
+    map.on("contextmenu", (e) => {
+      const o = e.originalEvent;
+      o.preventDefault();
+      if (desce && Math.hypot(o.clientX - desce[0], o.clientY - desce[1]) > 5) { desce = null; return; } // foi arraste para girar o mapa
+      desce = null;
+      abrirMenuContexto(e.lngLat, o.clientX, o.clientY);
+    });
+    map.on("touchstart", (e) => {
+      clearTimeout(toque);
+      if (!e.points || e.points.length !== 1) return;
+      const ll = e.lngLat, t = e.originalEvent.touches[0];
+      toque = setTimeout(() => abrirMenuContexto(ll, t.clientX, t.clientY), 650);
+    });
+    for (const ev of ["touchmove", "touchend", "movestart"]) map.on(ev, () => clearTimeout(toque));
+    document.addEventListener("mousedown", (e) => { if (!e.target.closest("#menu-ctx")) fecharMenuContexto(); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") fecharMenuContexto(); });
+    map.on("movestart", fecharMenuContexto);
+  }
+  function fecharMenuContexto() { const m = $("#menu-ctx"); if (m) m.remove(); }
+  const TAMANHOS = [[25, 500], [100, 1000], [400, 2000]]; // ha, lado do quadrado em metros
+  function quadradoEm(lon, lat, lado) {
+    const dLat = lado / 2 / 111320, dLon = lado / 2 / (111320 * Math.cos((lat * Math.PI) / 180));
+    return [[lon - dLon, lat + dLat], [lon + dLon, lat + dLat], [lon + dLon, lat - dLat], [lon - dLon, lat - dLat]];
+  }
+  function pontoNoAnel(p, anel) {
+    let dentro = false;
+    for (let i = 0, j = anel.length - 1; i < anel.length; j = i++) {
+      const [xi, yi] = anel[i], [xj, yj] = anel[j];
+      if ((yi > p[1]) !== (yj > p[1]) && p[0] < ((xj - xi) * (p[1] - yi)) / (yj - yi) + xi) dentro = !dentro;
+    }
+    return dentro;
+  }
+  const IC = {
+    ret: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="6" width="16" height="12" rx="1"/></svg>',
+    pol: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l7-4 8 5-2 10H7z"/></svg>',
+    lupa: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>',
+    mira: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>',
+    copiar: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></svg>',
+  };
+  function abrirMenuContexto(ll, x, y) {
+    fecharMenuContexto();
+    if (!editor) return;
+    const lat = ll.lat, lon = ll.lng, txt = `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+    const dentro = S.anel.length >= 3 && pontoNoAnel([lon, lat], S.anel);
+    const menu = document.createElement("div");
+    menu.id = "menu-ctx"; menu.className = "menu-ctx"; menu.setAttribute("role", "menu");
+    menu.innerHTML = `<div class="mc-topo"><b id="mc-nome">Este ponto</b><code>${txt}</code></div>
+      <div class="mc-rot">Marcar talhão aqui</div>
+      <div class="mc-tam">${TAMANHOS.map(([ha, l]) => `<button type="button" role="menuitem" data-a="quad" data-l="${l}"><b>${ha} ha</b><small>${l >= 1000 ? l / 1000 + " km" : l + " m"} de lado</small></button>`).join("")}</div>
+      <div class="mc-rot">Desenhar a partir daqui</div>
+      <button type="button" role="menuitem" data-a="ret">${IC.ret}Retângulo (clique no canto oposto)</button>
+      <button type="button" role="menuitem" data-a="pol">${IC.pol}Polígono (este é o 1º vértice)</button>
+      <div class="mc-sep"></div>
+      ${dentro && S.passo === "talhao" ? `<button type="button" role="menuitem" data-a="analisar">${IC.lupa}Analisar este talhão</button>` : ""}
+      <button type="button" role="menuitem" data-a="voar">${IC.mira}Aproximar aqui</button>
+      <button type="button" role="menuitem" data-a="copiar">${IC.copiar}Copiar coordenadas</button>`;
+    document.body.appendChild(menu);
+    const r = menu.getBoundingClientRect();
+    menu.style.left = `${Math.max(8, Math.min(x, innerWidth - r.width - 8))}px`;
+    menu.style.top = `${Math.max(8, Math.min(y, innerHeight - r.height - 8))}px`;
+    $$("button", menu).forEach((b) => (b.onclick = () => { fecharMenuContexto(); acaoMenu(b.dataset.a, lon, lat, +b.dataset.l, txt); }));
+    // nome do lugar (mesmo serviço da busca); se falhar, fica só a coordenada
+    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&zoom=10&accept-language=pt-BR&lat=${lat}&lon=${lon}`)
+      .then((res) => res.json())
+      .then((j) => {
+        const el = $("#mc-nome"), a = j && j.address;
+        if (el && a) el.textContent = [a.city || a.town || a.village || a.municipality || a.county, a.state].filter(Boolean).join(", ") || "Este ponto";
+      })
+      .catch(() => {});
+  }
+  async function acaoMenu(a, lon, lat, lado, txt) {
+    if (a === "copiar") { try { await navigator.clipboard.writeText(txt); toast(`Copiado: ${txt}`); } catch (e) { toast(txt, 5000); } return; }
+    if (a === "analisar") { const b = $("#analisar"); if (b && !b.disabled) b.click(); return; }
+    if (a === "voar") {
+      if ($("#lat")) { $("#lat").value = lat.toFixed(5); $("#lon").value = lon.toFixed(5); }
+      return irParaCoordenada(lat, lon);
+    }
+    S.demo = null;
+    if (S.passo !== "talhao") irPara("talhao");
+    if (map.getZoom() < 12) await voarPara(lat, lon, 14.2);
+    if (marcador) { marcador.remove(); marcador = null; }
+    if (a === "quad") {
+      editor.definir(quadradoEm(lon, lat, lado), { retangulo: true });
+      editor.travar(false);
+      toast("Talhão marcado. Arraste os cantos para ajustar ao limite real da lavoura.", 4000);
+    } else if (a === "ret") {
+      editor.iniciarRetanguloEm([lon, lat]);
+      toast("Mova o mouse e clique no canto oposto do talhão.", 4000);
+    } else if (a === "pol") {
+      editor.iniciarPoligonoEm([lon, lat]);
+      toast("Clique nos próximos vértices. Duplo clique ou Enter fecha o polígono.", 4500);
+    }
   }
 
   let marcador;
@@ -257,11 +358,11 @@
       if (f === "livre") b.disabled = !m;
     });
     $("#dica-mapa").textContent = {
-      retangulo: "Clique e arraste sobre a lavoura para desenhar o retângulo",
+      retangulo: "Clique e arraste sobre a lavoura para desenhar o retângulo. Botão direito no mapa: marcar um talhão pronto ali",
       poligono: "Clique para cada vértice. Feche no primeiro ponto, com duplo clique ou Enter",
       editar: editor.retangulo ? "Arraste os cantos para redimensionar, o centro para mover, os pontos médios para novos vértices"
         : "Arraste vértices e pontos médios. Duplo clique num vértice remove. Arraste o interior para mover",
-      nenhum: "Escolha Retângulo ou Polígono",
+      nenhum: "Escolha Retângulo ou Polígono, ou use o botão direito no mapa",
     }[modo];
     S.modo = m ? modoDados(m.anel) : null;
     const semServidor = S.modo === "aovivo" && S.servidor === false;

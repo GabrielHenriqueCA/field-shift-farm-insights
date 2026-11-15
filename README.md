@@ -102,13 +102,16 @@ Designed in accordance with the project dossier, each color serves a direct sema
 | | |
 | --- | --- |
 | <img src="assets/img/app/01-globo.jpg" alt="Step 1: search by place name or coordinate on the satellite globe" /> | <img src="assets/img/app/02-talhao.jpg" alt="Step 2: draw the field; geodesic area updates live" /> |
-| **1. Location.** Search a town, farm or `lat, lon`; the globe flies there. | **2. Field.** Rectangle, polygon or free vertices; geodesic area (WGS84) updates live. |
+| **1. Location.** Search a town, farm or `lat, lon`, or right-click anywhere on the map. | **2. Field.** Rectangle, polygon or free vertices; geodesic area (WGS84) updates live. |
 | <img src="assets/img/app/03-raio-x.jpg" alt="Step 3: X-ray with land cover and 10 years of NDVI history" /> | <img src="assets/img/app/04-prioridades.jpg" alt="Step 4: priorities from free text turned into weights" /> |
 | **3. X-ray.** What is inside the polygon today (ESA WorldCover 10 m), 10+ seasons of MODIS NDVI and the inferred crop history. | **4. Priorities.** Free text becomes weights that the farmer can adjust. |
 | <img src="assets/img/app/06-el-nino.jpg" alt="Step 5: El Niño mode reorders the ranking and shows each analog year" /> | <img src="assets/img/app/07-explicacao.jpg" alt="Explainability: why, benefits, risks and what we don't know" /> |
 | **5. El Niño mode.** The ranking is recomputed over the 6 strong El Niño years, showing each analog year (not an average). | **Explainability.** Why / Benefits / Risks / What we don't know, built only from engine numbers. |
 | <img src="assets/img/app/08-mapa.jpg" alt="Step 6: smart map with climate risk and attention areas" /> | <img src="assets/img/app/09-area-urbana-bloqueada.jpg" alt="Any location: an urban polygon in Campinas is flagged as 99 percent buildings and blocked" /> |
 | **6. Smart map.** Climate risk, slope and attention areas on the field. | **Any location, honest.** Live data for a polygon in downtown Campinas: 99% buildings, so the app refuses to recommend rotations. |
+
+| <img src="assets/img/app/11-menu-botao-direito.jpg" alt="Right-click menu: mark a 25, 100 or 400 ha field at that point or start drawing from it" /> | |
+| **Right-click menu.** Right-click (or long-press on mobile) anywhere: place name and coordinate, mark a 25 / 100 / 400 ha field there, start a rectangle or polygon anchored at that point, zoom in or copy the coordinate. | |
 
 <p align="center"><img src="assets/img/app/10-celular.jpg" alt="Mobile layout with bottom sheet" width="320" /></p>
 

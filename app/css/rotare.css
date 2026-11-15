@@ -295,3 +295,21 @@ textarea.campo { min-height: 64px; resize: vertical; }
   .res-topo { grid-template-columns: 1fr; }
   .confirma { grid-template-columns: 1fr; }
 }
+
+/* ---------- menu do botão direito no mapa ---------- */
+.menu-ctx { position: fixed; z-index: 60; width: 270px; background: var(--vidro); border: 1px solid var(--linha); border-radius: var(--r); box-shadow: var(--sombra); backdrop-filter: blur(14px); padding: 6px; font-size: 13px; animation: mcEntra .12s ease-out; }
+@keyframes mcEntra { from { opacity: 0; transform: translateY(-4px) scale(.98); } to { opacity: 1; transform: none; } }
+.menu-ctx .mc-topo { padding: 8px 10px 10px; border-bottom: 1px solid var(--linha); margin-bottom: 4px; display: grid; gap: 2px; }
+.menu-ctx .mc-topo b { font-family: var(--f-titulo); font-size: 14px; }
+.menu-ctx .mc-topo code { color: var(--palha); font-size: 11.5px; }
+.menu-ctx .mc-rot { color: var(--papel-3); font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; padding: 8px 10px 4px; }
+.menu-ctx .mc-tam { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 0 4px 4px; }
+.menu-ctx .mc-tam button { display: grid; gap: 1px; justify-items: center; padding: 8px 4px; border: 1px solid var(--linha); border-radius: 8px; background: rgba(233, 196, 106, .06); color: var(--papel); cursor: pointer; }
+.menu-ctx .mc-tam button b { color: var(--palha); }
+.menu-ctx .mc-tam button small { color: var(--papel-3); font-size: 10.5px; }
+.menu-ctx .mc-tam button:hover, .menu-ctx .mc-tam button:focus-visible { border-color: var(--palha); background: rgba(233, 196, 106, .14); }
+.menu-ctx > button { display: flex; align-items: center; gap: 9px; width: 100%; padding: 8px 10px; border: 0; border-radius: 7px; background: none; color: var(--papel-2); text-align: left; cursor: pointer; font: inherit; }
+.menu-ctx > button:hover, .menu-ctx > button:focus-visible { background: rgba(244, 241, 234, .07); color: var(--papel); }
+.menu-ctx > button svg { flex: 0 0 auto; opacity: .8; }
+.menu-ctx .mc-sep { height: 1px; background: var(--linha); margin: 4px 6px; }
+.dica-ctx { margin-top: 8px; border-left-color: var(--palha); }

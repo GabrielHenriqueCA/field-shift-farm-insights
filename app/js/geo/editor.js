@@ -63,6 +63,17 @@
       this._cursor(); this._render(); this._emitir();
     }
     liberarVertices() { this.retangulo = false; this._emitir(); }
+    // Menu do botão direito: começa o desenho já ancorado no ponto escolhido
+    iniciarRetanguloEm(p) {
+      this.iniciar("retangulo");
+      this.arrasto = { tipo: "ret", a: [p[0], p[1]], fixo: true };
+      this.map.dragPan.disable();
+    }
+    iniciarPoligonoEm(p) {
+      this.iniciar("poligono");
+      this.rascunho.push([p[0], p[1]]);
+      this.map.getSource("ed-vert").setData(pontos(this.rascunho));
+    }
     // Fora da etapa de desenho o talhão fica visível, mas sem alças de edição
     travar(sim) {
       if (sim) { this.modo = "nenhum"; this.rascunho = null; this.map.doubleClickZoom.enable(); }
@@ -97,6 +108,8 @@
     // ----- eventos -----
     _down(e) {
       const m = this.map;
+      if (e.originalEvent && e.originalEvent.button > 0) return; // botão direito/meio: menu e rotação do mapa
+      if (this.arrasto && this.arrasto.fixo) { e.preventDefault(); return; } // retângulo ancorado: o clique fecha o canto oposto
       if (this.modo === "retangulo") {
         e.preventDefault(); m.dragPan.disable();
         this.arrasto = { tipo: "ret", a: [e.lngLat.lng, e.lngLat.lat] };
@@ -144,7 +157,8 @@
         this._render(); this._emitir(true);
       }
     }
-    _up() {
+    _up(e) {
+      if (e && e.originalEvent && e.originalEvent.button > 0) return;
       const a = this.arrasto;
       if (!a) return;
       this.arrasto = null; this.map.dragPan.enable();
