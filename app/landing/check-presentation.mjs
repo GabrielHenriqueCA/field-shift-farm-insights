@@ -87,38 +87,51 @@ touch.tour.setSuspended(false);touch.wheel();await touch.flush();assert.equal(to
 
 const html=readFileSync(new URL('../apresentacao.html',import.meta.url),'utf8');
 assert.ok(!html.includes('flight-skip'));assert.ok(!html.includes('motion-toggle'));assert.ok(!html.includes('Pressione Espaço para pausar'));
-// The presentation offers a direct link to the platform; the platform is index.html again.
+// Folder entry works on plain static hosts, without relying on Vercel rewrites.
 assert.ok(html.includes('class="header-platform"'));
 for(const name of ['landing','story','flight'])new vm.Script(readFileSync(new URL(name+'.js',import.meta.url),'utf8'));
 
 const entry=readFileSync(new URL('../index.html',import.meta.url),'utf8');
-assert.ok(entry.includes('id="mapa"'),'index.html is the platform');
-assert.ok(entry.includes('href="apresentacao.html"'),'platform links to the presentation');
-const legacy=readFileSync(new URL('../plataforma.html',import.meta.url),'utf8');
-const legacyScript=legacy.match(/<script>([\s\S]*?)<\/script>/)[1];
+assert.ok(!entry.includes('id="mapa"'),'index.html must open the presentation before the platform');
+assert.ok(entry.includes('content="0;url=apresentacao.html"'),'The folder entry also redirects without JavaScript');
+const platform=readFileSync(new URL('../plataforma.html',import.meta.url),'utf8');
+assert.ok(platform.includes('id="mapa"'),'plataforma.html contains the actual platform');
+assert.ok(platform.includes('href="apresentacao.html"'),'platform links back to the presentation');
+const entryScript=entry.match(/<script>([\s\S]*?)<\/script>/)[1];
 for(const [href,expected] of [
-  ['http://localhost/app/plataforma.html','http://localhost/app/index.html'],
-  ['file:///C:/project/app/plataforma.html','file:///C:/project/app/index.html']
+  ['http://127.0.0.1:5500/app/','http://127.0.0.1:5500/app/apresentacao.html'],
+  ['http://localhost/app/index.html?source=nav#inicio','http://localhost/app/apresentacao.html?source=nav#inicio'],
+  ['http://localhost/','http://localhost/apresentacao.html'],
+  ['file:///C:/project/app/index.html','file:///C:/project/app/apresentacao.html']
 ]){
-  let redirected;
-  vm.runInNewContext(legacyScript,{URL,window:{location:{href,search:'',hash:'',replace:url=>{redirected=url;}}}});
+  let redirected;const url=new URL(href);
+  vm.runInNewContext(entryScript,{URL,window:{location:{href,search:url.search,hash:url.hash,replace:value=>{redirected=value;}}}});
   assert.equal(redirected,expected);
 }
 const landing=readFileSync(new URL('landing.js',import.meta.url),'utf8');
 const routing=landing.match(/  const platformURL=.*?;/)[0];
 for(const [href,expected] of [
-  ['http://localhost/app/apresentacao.html','http://localhost/app/'],
-  ['http://localhost/apresentacao.html','http://localhost/'],
-  ['http://localhost/apresentacao','http://localhost/'],
-  ['file:///C:/project/app/apresentacao.html','file:///C:/project/app/index.html']
+  ['http://127.0.0.1:5500/app/apresentacao.html','http://127.0.0.1:5500/app/plataforma.html'],
+  ['http://localhost/app/apresentacao.html','http://localhost/app/plataforma.html'],
+  ['http://localhost/apresentacao.html','http://localhost/plataforma.html'],
+  ['http://localhost/apresentacao','http://localhost/explorar'],
+  ['https://rotare.vercel.app/','https://rotare.vercel.app/explorar'],
+  ['https://rotare.vercel.app/?utm_source=spaceapps#inicio','https://rotare.vercel.app/explorar'],
+  ['https://rotare.vercel.app/apresentacao','https://rotare.vercel.app/explorar'],
+  ['https://example.org/','https://example.org/explorar'],
+  ['file:///C:/project/app/apresentacao.html','file:///C:/project/app/plataforma.html']
 ]){
   const url=new URL(href),context={URL,location:{href,pathname:url.pathname,protocol:url.protocol}};
   vm.runInNewContext(routing+'\nresult=platformURL;',context);
   assert.equal(context.result,expected);
 }
 for(const path of ['../vercel.json','../../vercel.json']){
-  const rewrites=JSON.parse(readFileSync(new URL(path,import.meta.url),'utf8')).rewrites;
-  assert.ok(rewrites.find(route=>route.source==='/explorar').destination.endsWith('/index.html'));
-  assert.ok(!rewrites.some(route=>route.source==='/'&&route.destination.includes('apresentacao')));
+  const config=JSON.parse(readFileSync(new URL(path,import.meta.url),'utf8'));
+  const rewrites=config.rewrites;
+  assert.equal(config.cleanUrls,false,'Explicit HTML destinations must not redirect back to the presentation root.');
+  assert.equal(config.trailingSlash,false,'Public routes keep relative assets at the app root.');
+  assert.ok(rewrites.find(route=>route.source==='/explorar').destination.endsWith('/plataforma.html'));
+  assert.ok(rewrites.find(route=>route.source==='/').destination.endsWith('/apresentacao.html'));
+  assert.ok(rewrites.find(route=>route.source==='/apresentacao').destination.endsWith('/apresentacao.html'));
 }
 console.log('PASS: manual/automatic scene parity, trackpad, touch, queued gestures, final animation, click-to-pause and entry/platform routes.');

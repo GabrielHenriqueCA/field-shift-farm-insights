@@ -1,9 +1,10 @@
 {
-  "cleanUrls": true,
+  "cleanUrls": false,
+  "trailingSlash": false,
   "rewrites": [
-    { "source": "/", "destination": "/app/index.html" },
+    { "source": "/", "destination": "/app/apresentacao.html" },
     { "source": "/apresentacao", "destination": "/app/apresentacao.html" },
-    { "source": "/explorar", "destination": "/app/index.html" },
+    { "source": "/explorar", "destination": "/app/plataforma.html" },
     { "source": "/(.*)", "destination": "/app/$1" }
   ]
 }

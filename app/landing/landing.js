@@ -7,8 +7,8 @@
   const assets=window.ROTARE_LANDING_ASSETS||{},asset=name=>assets[name]||assetRoot+name;
   const regional=window.ROTARE_LANDING_STATS,reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
   const counterFrames=new Map();
-  // A plataforma é o index.html da mesma pasta ("./" em servidor, arquivo explícito em file://).
-  const platformURL=new URL(location.protocol==='file:'?'index.html':'./',location.href).href;
+  // As rotas públicas abrem /explorar; o HTML direto abre a plataforma na mesma pasta.
+  const platformURL=new URL(location.protocol==='file:'||location.pathname.endsWith('.html')?'plataforma.html':'explorar',location.href).href;
   document.querySelectorAll('.header-platform').forEach(link=>{link.href=platformURL;});
   function setupTabs(tabs, select) {
     tabs.forEach((tab, index) => {

@@ -1,6 +1,9 @@
 {
-  "cleanUrls": true,
+  "cleanUrls": false,
+  "trailingSlash": false,
   "rewrites": [
-    { "source": "/explorar", "destination": "/index.html" }
+    { "source": "/", "destination": "/apresentacao.html" },
+    { "source": "/apresentacao", "destination": "/apresentacao.html" },
+    { "source": "/explorar", "destination": "/plataforma.html" }
   ]
 }
