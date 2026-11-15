@@ -71,7 +71,6 @@ class Contexto:
     def salvar(self, df: pd.DataFrame, arquivo: str) -> Path:
         caminho = self.saida / arquivo
         df.to_parquet(caminho, index=False)
-        df.head(200).to_csv(caminho.with_suffix(".amostra.csv"), index=False)
         return caminho
 
     def ref(self, nome: str, url: str, licenca: str = "", citacao: str = ""):

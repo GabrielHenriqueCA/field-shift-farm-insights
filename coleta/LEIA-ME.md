@@ -83,7 +83,6 @@ Opções úteis:
 | `ecocrop_parametros.parquet` | exigências de 18 culturas pela FAO: temperatura, chuva, pH, geada letal, ciclo, textura |
 | `aptidao_ecocrop.parquet` | **nota de 0 a 1 de cada cultura em cada mês de plantio** no talhão (temperatura, chuva do ciclo e pH; a nota final é a menor das três) |
 | `calendario_fao.parquet` | calendário de plantio e colheita da FAO (ver seção 7) |
-| `*.amostra.csv` | primeiras 200 linhas de cada tabela, para olhar no Excel |
 | `manifesto.json` | o que deu certo e **a lista de referências** (fonte, link, licença, citação) para o campo References |
 
 ## 5. Regras do app
