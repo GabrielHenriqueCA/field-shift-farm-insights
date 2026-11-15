@@ -1,3 +1,4 @@
+// Aviso de SI: testes escritos com ajuda de IA (Claude), sob direcao do time Datanauts Brasil.
 // Behavioral checks for manual/automatic scene parity, input handling and the final handoff.
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
