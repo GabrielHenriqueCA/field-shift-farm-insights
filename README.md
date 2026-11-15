@@ -253,7 +253,7 @@ Computed from `data/<field>/chirps_safras.parquet` for each field in [`data/`](d
 
 **4. No AI in the results.** The engine and the explanations are rules and formulas. No language model takes part in the ranking or writes the explanation text that the farmer sees.
 
-**5. Images and media.** The README images are real screenshots of the working app. The Rotare logo was vectorised with AI help from the team's own design. In the presentation, the notebook sketch ("How we imagined it") was hand-drawn by the team, and one concept image ("How we designed it") was generated with AI and is labeled "AI-generated image" on the page. The background music is "Ambient Space Cinematic" by Viacheslav Starostin (Pixabay Content License).
+**5. Images and media.** The README images are real screenshots of the working app. The Rotare logo was vectorised with AI help from the team's own design. In the presentation, the notebook sketch ("How we imagined it") was hand-drawn by the team, and one concept image ("How we designed it") was generated with AI and is labeled "AI-generated image" on the page. The background music is "Ambient Space Cinematic" by Viacheslav Starostin (Pixabay Content License). The demo video shows real screen captures of the app; its English narration voice is AI-generated from the team's own script, with the consent of the team member on screen, and the video carries a visible "Made with SI" label.
 
 No NASA logo, flag or official mission identifier is altered or misused in this project.
 
