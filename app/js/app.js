@@ -65,10 +65,34 @@
     // ao girar o celular ou estreitar a janela, o painel de camadas recolhe para não cobrir o conteúdo
     matchMedia("(max-width: 859px)").addEventListener("change", (ev) => { if (ev.matches) { $("#camadas").classList.add("recolhida"); renderCamadas(); } });
     instalarTecnico();
-    fetch("api/status").then((r) => r.json()).then((j) => { S.servidor = !!j.earth_engine; })
-      .catch(() => { S.servidor = false; }).finally(() => { if (S.passo === "talhao") atualizarTalhao(); });
+    verificarServidor();
     irPara("local");
   }
+
+  // Na Vercel a primeira chamada pode pegar a função "fria" (carregar o Earth Engine e autenticar).
+  // Por isso o status tenta até 3 vezes antes de marcar o servidor como desligado, e volta a
+  // perguntar quando o talhão é desenhado fora de Sorriso (ver atualizarTalhao).
+  let checandoServidor = null, ultimaChecagem = 0;
+  function verificarServidor() {
+    if (checandoServidor) return checandoServidor;
+    ultimaChecagem = Date.now();
+    const tentar = async (n) => {
+      const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 20000);
+      try {
+        const r = await fetch("api/status", { signal: ctl.signal, cache: "no-store" });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return !!(await r.json()).earth_engine;
+      } catch (e) {
+        if (n <= 1) return false;
+        await new Promise((ok) => setTimeout(ok, 1500));
+        return tentar(n - 1);
+      } finally { clearTimeout(t); }
+    };
+    checandoServidor = tentar(3).then((on) => { S.servidor = on; })
+      .finally(() => { checandoServidor = null; if (S.passo === "talhao") atualizarTalhao(); });
+    return checandoServidor;
+  }
+  const servidorLocal = ["localhost", "127.0.0.1", "[::1]", ""].includes(location.hostname);
 
   // ===================================================================== navegação
   function renderPassos() {
@@ -383,6 +407,8 @@
     }[modo];
     S.modo = m ? modoDados(m.anel) : null;
     const semServidor = S.modo === "aovivo" && S.servidor === false;
+    // tenta de novo antes de desistir, no máximo a cada 30 s (sem isso, servidor desligado viraria um ciclo)
+    if (semServidor && !checandoServidor && Date.now() - ultimaChecagem > 30000) verificarServidor();
     const coberturaTxt = { padrao: ["broto", "Preprocessed region"], aovivo_pronto: ["ceu", "Live data already loaded"],
       aovivo: semServidor ? ["seca", "Data server is off"] : ["ceu", "Data fetched live (~20 s)"] };
     const [cc, ct] = m ? coberturaTxt[S.modo] : ["", ""];
@@ -402,7 +428,9 @@
       ${m.autoIntersecao ? `<div class="aviso seca">The polygon crosses itself. Move the vertices to undo the crossing before analyzing.</div>` : ""}
       ${m.pequeno ? `<div class="aviso seca">Area under 0.5 ha: too small for the satellite grids.</div>` : ""}
       ${S.modo === "aovivo" && !semServidor ? `<div class="aviso">Outside the preprocessed region: when you analyze, Rotare fetches the same data (NDVI, land use, soil, terrain, rain and temperature) for this polygon from Google Earth Engine and NASA POWER.</div>` : ""}
-      ${semServidor ? `<div class="aviso seca">To analyze outside Sorriso, the data server must be running: in the <code>rotare/app</code> folder, run <code>python servidor.py</code> in the environment that has Earth Engine. The published version (no server) only analyzes the demo region.</div>` : ""}
+      ${semServidor ? (servidorLocal
+        ? `<div class="aviso seca">To analyze outside Sorriso, the data server must be running: in the <code>rotare/app</code> folder, run <code>python servidor.py</code> in the environment that has Earth Engine.</div>`
+        : `<div class="aviso seca">The live data service did not respond. Wait a few seconds and redraw the field, or use a field inside the Sorriso demo region, which always works.</div>`) : ""}
       <details><summary>Vertex coordinates (${m.vertices})</summary><div class="coords">${m.anel.slice(0, -1).map((p, i) => `${i + 1}. ${p[1].toFixed(6)}, ${p[0].toFixed(6)}`).join("<br>")}</div></details>`
       : `<div class="aviso">Tip: click a demo field (blue outline) to load a real field in Sorriso.</div>`}
     </section>`;
@@ -468,7 +496,7 @@
       await espera(450);
     } catch (e) {
       console.error(e);
-      ov.classList.add("oculto"); modal(`<h3>Could not analyze</h3><p>${esc(e.message)}</p><p>If the area is outside Sorriso, check that the server (<code>python servidor.py</code>) is running and has Earth Engine access.</p>`); return;
+      ov.classList.add("oculto"); modal(`<h3>Could not analyze</h3><p>${esc(e.message)}</p><p>${servidorLocal ? "If the area is outside Sorriso, check that the server (<code>python servidor.py</code>) is running and has Earth Engine access." : "Live analysis outside Sorriso depends on Google Earth Engine. Try again in a minute, or use a field inside the Sorriso demo region."}</p>`); return;
     }
     ov.classList.add("oculto");
     S.res = null; S.fixas = null;
