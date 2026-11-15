@@ -1,7 +1,8 @@
 # Vercel Ignore File
 # Ignora caches, ambientes locais e dados analiticos pesados
-data/
-motor/
+# Apenas os dados e o motor analitico na raiz; app/data e app/js/motor sao publicos.
+/data/
+/motor/
 .venv/
 **/__pycache__/
 *.pyc
@@ -12,5 +13,5 @@ app/**/*.py
 app/*.py
 
 # Bloqueia coleta local, liberando apenas coleta/grades.py para as funcoes serverless
-coleta/*
-!coleta/grades.py
+/coleta/*
+!/coleta/grades.py

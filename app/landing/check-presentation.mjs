@@ -128,6 +128,10 @@ for(const [href,expected] of [
 for(const path of ['../vercel.json','../../vercel.json']){
   const config=JSON.parse(readFileSync(new URL(path,import.meta.url),'utf8'));
   const rewrites=config.rewrites;
+  assert.ok(Object.hasOwn(config,'framework'),'Explicitly select Other instead of Python framework auto-detection.');
+  assert.equal(config.framework,null);
+  assert.equal(config.outputDirectory,'.');
+  assert.equal(config.buildCommand,path==='../vercel.json'?'node landing/build-preview.mjs':'node app/landing/build-preview.mjs');
   assert.equal(config.cleanUrls,false,'Explicit HTML destinations must not redirect back to the presentation root.');
   assert.equal(config.trailingSlash,false,'Public routes keep relative assets at the app root.');
   assert.ok(rewrites.find(route=>route.source==='/explorar').destination.endsWith('/plataforma.html'));
