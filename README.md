@@ -11,13 +11,13 @@
 [![Tests](https://img.shields.io/badge/Tests-19%20Passing-3DBE7A)](app/tests/)
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11+-4C8DF6?logo=python&logoColor=white)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-3DBE7A)](LICENSE)
-[![Live demo](https://img.shields.io/badge/Live%20demo-rotare.vercel.app-E9C46A)](https://rotare.vercel.app/explorar)
+[![Live demo](https://img.shields.io/badge/Live%20demo-rotare.vercel.app-E9C46A)](https://rotare.vercel.app/)
 
 **Rotare helps farmers compare three-year crop rotations using NASA satellite data, a deterministic FAO-based engine and an interactive satellite map.**
 
 *Built by **Datanauts Brasil** (São Paulo) for the NASA Space Apps Challenge 2026 · Challenge: **Field Shift — Adapting Farms with NASA Data***
 
-### [🌐 Open the platform](https://rotare.vercel.app/explorar) · [🎬 Watch the presentation](https://rotare.vercel.app/) · [💻 Source code](https://github.com/GabrielHenriqueCA/field-shift-farm-insights)
+### [🌐 Open the platform](https://rotare.vercel.app/)
 
 *Draw any field on Earth: NASA satellite and climate data arrive live in about 15 to 30 seconds. No account needed.*
 
@@ -70,7 +70,7 @@ The farmer sets the priorities, and Rotare shows the numbers behind every result
 
 **Journey:** Coordinate → Farm on satellite → Draw the field → X-ray analysis → Set priorities → 3-year rotations → Climate simulator → Smart map.
 
-*Real screenshots of the working app (Home Field demo, Sorriso, MT, real data). Try the same journey at [rotare.vercel.app/explorar](https://rotare.vercel.app/explorar).*
+*Real screenshots of the working app (Home Field demo, Sorriso, MT, real data). Try the same journey at [rotare.vercel.app](https://rotare.vercel.app/).*
 
 | | |
 | --- | --- |
@@ -207,6 +207,24 @@ Computed from [`data/sorriso/csv/`](data/sorriso/csv/) (`imerg.csv`, `resumo_saf
 
 > [!NOTE]
 > These are observations for one municipality, not a forecast. Yields also depend on factors other than rainfall, such as seeds, management and prices.
+
+### Beyond Sorriso: each region has its own El Niño
+
+To check that El Niño Mode is not a hard-coded "El Niño means drought" rule, we ran the same comparison on the four other fields already collected: CHIRPS rainfall over 44 complete July–June years since 1981, classified by the NOAA Oceanic Niño Index.
+
+| Field | Strong El Niño years (n = 6) | All other years | Difference | Driest year since 1981 |
+|:---|---:|---:|---:|:---|
+| Sorriso, MT (Brazil) | 1,881 mm | 2,012 mm | **−6.5%** | 1997/98, strong El Niño |
+| Punjab (India) | 573 mm | 607 mm | **−5.7%** | 2000/01, La Niña |
+| Eldoret (Kenya) | 1,247 mm | 1,253 mm | −0.5% | 2016/17, La Niña |
+| Pergamino (Argentina) | 1,054 mm | 1,000 mm | **+5.4%** | 2022/23, La Niña |
+| Iowa (USA) | 948 mm | 896 mm | **+5.8%** | 2020/21, La Niña |
+
+- **The sign changes with the place.** Strong El Niño years are drier in Sorriso and Punjab, wetter in Pergamino and Iowa, and almost neutral over the whole year in Eldoret, consistent with the known regional effects of ENSO.
+- **The data matches real events.** Pergamino's driest year in the record is 2022/23, the season of Argentina's historic La Niña drought.
+- **That is why El Niño Mode replays each field's own strong El Niño seasons** instead of applying a fixed penalty. Six seasons per group show a signal, not a statistical proof.
+
+Computed from `data/<field>/chirps_safras.parquet` for each field in [`data/`](data/).
 
 ---
 
