@@ -2,8 +2,20 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "cleanUrls": false,
   "trailingSlash": false,
-  "buildCommand": null,
+  "functions": {
+    "api/pacote.py": {
+      "maxDuration": 60,
+      "includeFiles": "coleta/grades.py",
+      "excludeFiles": "{app,assets,data,motor}/**"
+    },
+    "api/status.py": {
+      "maxDuration": 15,
+      "includeFiles": "coleta/grades.py",
+      "excludeFiles": "{app,assets,data,motor}/**"
+    }
+  },
   "rewrites": [
+    { "source": "/api/:path*", "destination": "/api/:path*" },
     { "source": "/", "destination": "/app/apresentacao.html" },
     { "source": "/apresentacao", "destination": "/app/apresentacao.html" },
     { "source": "/explorar", "destination": "/app/plataforma.html" },

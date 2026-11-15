@@ -1,20 +1,16 @@
 # Vercel Ignore File
-# Ignore all Python files and backend directories so Vercel builds as 100% static HTML/JS/CSS
-*.py
-**/*.py
-requirements.txt
-**/requirements.txt
-pyproject.toml
-Pipfile
-Pipfile.lock
-.python-version
-
-# Local backend / pipelines / data
-api/
-coleta/
-motor/
+# Ignora caches, ambientes locais e dados analiticos pesados
 data/
+motor/
 .venv/
 **/__pycache__/
 *.pyc
 *.parquet
+
+# Scripts locais em app/ (servidor de dev local e preparacao)
+app/**/*.py
+app/*.py
+
+# Bloqueia coleta local, liberando apenas coleta/grades.py para as funcoes serverless
+coleta/*
+!coleta/grades.py
