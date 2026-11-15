@@ -11,10 +11,15 @@
 [![Tests](https://img.shields.io/badge/Tests-19%20Passing-3DBE7A)](app/tests/)
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11+-4C8DF6?logo=python&logoColor=white)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-3DBE7A)](LICENSE)
+[![Live demo](https://img.shields.io/badge/Live%20demo-rotare.vercel.app-E9C46A)](https://rotare.vercel.app/explorar)
 
 **Rotare helps farmers compare three-year crop rotations using NASA satellite data, a deterministic FAO-based engine and an interactive satellite map.**
 
 *Built by **Datanauts Brasil** (São Paulo) for the NASA Space Apps Challenge 2026 · Challenge: **Field Shift — Adapting Farms with NASA Data***
+
+### [🌐 Open the platform](https://rotare.vercel.app/explorar) · [🎬 Watch the presentation](https://rotare.vercel.app/) · [💻 Source code](https://github.com/GabrielHenriqueCA/field-shift-farm-insights)
+
+*Draw any field on Earth: NASA satellite and climate data arrive live in about 15 to 30 seconds. No account needed.*
 
 </div>
 
@@ -23,11 +28,11 @@
 ## 📋 Contents
 
 - [Overview](#-overview)
-- [Plataform Interface](#-plataform-interface)
+- [Platform Interface](#️-platform-interface)
 - [How It Works](#-how-it-works)
 - [Data Sources](#-data-sources)
 - [Early Findings](#-early-findings)
-- [Known Limitations](#-known-limitations)
+- [Known Limitations](#️-known-limitations)
 - [Use of Artificial Intelligence (SI)](#-use-of-artificial-intelligence-si)
 - [Team](#-team--datanauts-brasil)
 - [License](#-license)
@@ -61,22 +66,24 @@ The farmer sets the priorities, and Rotare shows the numbers behind every result
 
 ---
 
-## 🖥️ Plataform Interface
+## 🖥️ Platform Interface
 
 **Journey:** Coordinate → Farm on satellite → Draw the field → X-ray analysis → Set priorities → 3-year rotations → Climate simulator → Smart map.
 
-*Real screenshots of the working app (Talhão Sede, Sorriso, MT, real data).*
+*Real screenshots of the working app (Home Field demo, Sorriso, MT, real data). Try the same journey at [rotare.vercel.app/explorar](https://rotare.vercel.app/explorar).*
 
 | | |
 | --- | --- |
 | <img src="assets/img/app/01-globo.jpg" alt="Step 1: search by place name or coordinate on the satellite globe" /> | <img src="assets/img/app/02-talhao.jpg" alt="Step 2: draw the field; geodesic area updates live" /> |
-| **1. Location.** Search a town, farm or `lat, lon`, or right-click anywhere on the map. | **2. Field.** Rectangle, polygon or free vertices; the geodesic area (WGS84) updates live. |
-| <img src="assets/img/app/03-raio-x.jpg" alt="Step 3: X-ray with land cover and 10 years of NDVI history" /> | <img src="assets/img/app/04-prioridades.jpg" alt="Step 4: priorities from free text turned into weights" /> |
-| **3. X-ray.** Current land cover inside the polygon (ESA WorldCover 10 m), 10+ seasons of MODIS NDVI and the inferred crop history. | **4. Priorities.** Free text becomes weights that the farmer can adjust. |
-| <img src="assets/img/app/06-el-nino.jpg" alt="Step 5: El Niño mode reorders the ranking and shows each analog year" /> | <img src="assets/img/app/07-explicacao.jpg" alt="Explainability: why, benefits, risks and what we don't know" /> |
-| **5. El Niño mode.** The ranking is recomputed over the 6 strong El Niño seasons, showing each analog year rather than an average. | **Explainability.** Why / Benefits / Risks / What we don't know, built only from engine numbers. |
-| <img src="assets/img/app/08-mapa.jpg" alt="Step 6: smart map with climate risk and attention areas" /> | <img src="assets/img/app/09-area-urbana-bloqueada.jpg" alt="An urban polygon in Campinas is flagged as 99 percent buildings and blocked" /> |
-| **6. Smart map.** Climate risk, slope and attention areas on the field. | **Honest about any location.** A polygon in downtown Campinas is 99% buildings, so the app refuses to recommend rotations. |
+| **1. Location.** Search a town, farm or `lat, lon`, pick a demo farm, or right-click anywhere on the map. | **2. Field.** Rectangle, polygon or free vertices; the geodesic area (WGS84) updates live. |
+| <img src="assets/img/app/03-raio-x.jpg" alt="Step 3: X-ray with land cover, soil, rain, drought risk, terrain and 10 years of NDVI" /> | <img src="assets/img/app/04-prioridades.jpg" alt="Step 4: priorities from free text turned into weights" /> |
+| **3. X-ray.** Land cover inside the polygon (ESA WorldCover 10 m), soil, rain, second-crop drought risk, terrain and 10+ seasons of MODIS NDVI. | **4. Priorities.** "Protect the soil and lower drought risk" becomes weights (29 / 47 / 12 / 12) that the farmer can adjust. |
+| <img src="assets/img/app/05-rotacoes.jpg" alt="Step 5: three-year rotations ranked next to the current rotation" /> | <img src="assets/img/app/06-el-nino.jpg" alt="El Niño mode re-ranks the rotations over the 6 strong El Niño seasons" /> |
+| **5. Rotations.** 83 valid combinations tested against 30 real seasons. *Farm balance* keeps income close to the current rotation (74 vs. 76) while soil health goes from 44 to 84. | **El Niño mode.** The ranking is recomputed over the 6 strong El Niño seasons, showing how often each rotation failed. |
+| <img src="assets/img/app/07-explicacao.jpg" alt="Explainability: why Rotare recommended this rotation" /> | <img src="assets/img/app/08-mapa.jpg" alt="Step 6: smart map with the saved plan, climate risk and attention areas" /> |
+| **Explainability.** "In a few words", plus benefits, risks and what we don't know, built only from engine numbers. | **6. Smart map.** The saved plan on the field, with climate risk, slope and native-vegetation attention areas. |
+| <img src="assets/img/app/09-minhas-safras.jpg" alt="My crops: saved plans kept for one hour in the browser" /> | |
+| **My crops.** Save a plan and come back to it: kept for 1 hour in the browser, with no account and no data sent anywhere. | |
 
 ### 📱 Mobile View
 
@@ -84,8 +91,8 @@ The platform runs in the phone browser with the same journey. The panels open as
 
 | | |
 | --- | --- |
-| <img src="assets/img/app/10-celular.jpg" alt="Rotare on a phone: the satellite map with the analysis panel as a bottom sheet" width="320" /> | <img src="assets/img/app/11-menu-botao-direito.jpg" alt="Right-click menu: mark a 25, 100 or 400 ha field at that point or start drawing from it" /> |
-| **Bottom sheet.** Every step of the journey fits the phone screen. | **Right-click menu.** Right-click (or long-press on mobile) to see the place and coordinate, mark a 25 / 100 / 400 ha field, start drawing from that point or copy the coordinate. |
+| <img src="assets/img/app/10-celular.jpg" alt="Rotare on a phone: the field X-ray as a bottom sheet over the satellite map" width="320" /> | <img src="assets/img/app/11-menu-botao-direito.jpg" alt="Right-click menu: mark a 25, 100 or 400 ha field at that point or start drawing from it" /> |
+| **Bottom sheet.** Every step of the journey fits the phone screen. | **Right-click menu.** Right-click (or long-press on mobile) to see the place and coordinate, drop a 25 / 100 / 400 ha field, start drawing from that point or copy the coordinate. |
 
 ---
 
@@ -109,7 +116,7 @@ flowchart TD
     ZON["Zonal statistics on the polygon<br/>NDVI · WorldCover · MapBiomas · SoilGrids · SRTM"]
     HIST["Crop history<br/>NDVI phenology rules"]
     WB["Daily water balance, 30 seasons<br/>FAO-56 + FAO-33 · CHIRPS rain · POWER temperature"]
-    RANK["84 three-year combinations<br/>4 scores, weighted by the farmer's priorities"]
+    RANK["83 valid three-year combinations<br/>4 scores, weighted by the farmer's priorities"]
     OUT["Ranked cards · El Niño mode<br/>explanations · smart map"]
 
     DEMO --> ZON
@@ -122,7 +129,7 @@ flowchart TD
 2. **X-ray** ([`app/js/geo/zonal.js`](app/js/geo/zonal.js)). The grids are cut to the drawn polygon: current land cover (WorldCover), land use since 2014 (MapBiomas), soil texture and carbon (SoilGrids 0–30 cm) and slope (SRTM). Urban or non-agricultural areas are blocked.
 3. **Crop history** ([`app/js/motor/historico.js`](app/js/motor/historico.js)). Simple phenology rules on the monthly NDVI curve infer each past season's crops. The result is always an inference that the farmer confirms or corrects.
 4. **Water balance** ([`app/js/motor/balanco.js`](app/js/motor/balanco.js)). For each of the 30 most recent complete seasons, the engine simulates soybean at the start of the rains followed by each second-crop option. It uses a daily root-zone water balance (FAO-56) and the yield response to water deficit (FAO-33), with CHIRPS rainfall and Hargreaves ET₀ from NASA POWER temperatures. Crop parameters are in [`app/js/motor/catalogo.js`](app/js/motor/catalogo.js).
-5. **Ranking** ([`app/js/motor/rotacao.js`](app/js/motor/rotacao.js)). There are seven second-crop options: corn, sorghum, cotton, millet, brachiaria, corn + brachiaria and fallow. They form 84 three-year combinations, and agronomic rules remove the invalid ones (for example, cotton two years in a row). Each combination gets four scores from 0 to 100: soil health (an index inspired by the USDA-NRCS Soil Conditioning Index), climate risk, water use and relative return. The cards show the farmer's current rotation, the best rotation for *Farm balance*, *Soil conservation* and *Climate resilience*, and one *Tailored to you* option that uses the farmer's own weights.
+5. **Ranking** ([`app/js/motor/rotacao.js`](app/js/motor/rotacao.js)). There are seven second-crop options: corn, sorghum, cotton, millet, brachiaria, corn + brachiaria and fallow. They form 84 three-year combinations, and agronomic rules remove the invalid ones (for example, cotton two years in a row), leaving 83 for the demo field. Each combination gets four scores from 0 to 100: soil health (an index inspired by the USDA-NRCS Soil Conditioning Index), climate risk, water use and relative return. The cards show the farmer's current rotation, the best rotation for *Farm balance*, *Soil conservation* and *Climate resilience*, and one *Tailored to you* option that uses the farmer's own weights.
 6. **Climate simulator.** Rainfall and temperature can be shifted, and El Niño mode replays only the 6 strong El Niño seasons (NOAA ONI). The cards keep their sequences and are re-ranked.
 7. **Explanations** ([`app/js/explica.js`](app/js/explica.js)). Rules turn the engine numbers into text. No number is created at this step.
 
@@ -213,7 +220,7 @@ Computed from [`data/sorriso/csv/`](data/sorriso/csv/) (`imerg.csv`, `resumo_saf
 | **Satellite latency** | IMERG Final arrives ~3.5 months late | Recent months use CHIRPS; incomplete IMERG seasons are flagged |
 | **Crop parameters** | Kc, Ky and residue values come from literature (FAO-56, FAO-33, Embrapa) | Sources are cited in the code; the return index is relative, not a price |
 | **El Niño** | Analog analysis of past seasons, not a weather forecast | Shows how past strong El Niño seasons affected this field, year by year |
-| **Coverage** | The published site has data only for the Sorriso region | Other areas need the local server with Google Earth Engine |
+| **Coverage** | The method is calibrated and checked against official yields only in Sorriso, MT | Any other field is analysed live (Google Earth Engine through the [`/api`](api/) serverless function, ~15 to 30 s); results outside Sorriso are indicative |
 
 ---
 
@@ -222,16 +229,13 @@ Computed from [`data/sorriso/csv/`](data/sorriso/csv/) (`imerg.csv`, `resumo_saf
 *In line with the **NASA Space Apps Challenge 2026 Rules** and the **Use of Super Intelligence (SI) Policy**:*
 
 **1. Idea and decisions.** The team chose the Field Shift challenge and decided Rotare's concept, scope and priorities in its own ideation session. Before the event, AI tools were used as **research support** to analyse the challenge, past Space Apps projects, existing tools and candidate approaches. The team discussed these options and made the final decisions. That research document is not part of this repository.
-
-<!-- TEAM: confirm that the paragraph above describes how the idea was decided. If in doubt, check with the event mentors. -->
-
-**2. Code and documentation.** AI coding assistants (Claude by Anthropic) wrote much of the code under the team's direction: the data collection pipeline ([`coleta/`](coleta/)), the decision engine, map and interface ([`app/js/`](app/js/)), the local data server and the first drafts of this README and [REFERENCES.md](REFERENCES.md). The team defined the method, reviewed, ran and edited the code, and approved the data sources, some of which were suggested by AI (for example CHIRPS and IBGE SIDRA). Every AI-assisted code file carries a disclosure comment at the top.
+**2. Code and documentation.** AI coding assistants (Claude by Anthropic) wrote much of the code under the team's direction: the data collection pipeline ([`coleta/`](coleta/)), the decision engine, map and interface ([`app/js/`](app/js/)), the live data API ([`api/`](api/) and the local [`app/servidor.py`](app/servidor.py)), the presentation and the first drafts of this README and [REFERENCES.md](REFERENCES.md). The team defined the method, reviewed, ran and edited the code, and approved the data sources, some of which were suggested by AI (for example CHIRPS and IBGE SIDRA). Every AI-assisted code file carries a disclosure comment at the top.
 
 **3. Data integrity.** **No data values were generated by AI.** Every rainfall total, temperature, soil property, yield and risk value comes from the open data listed in [REFERENCES.md](REFERENCES.md), processed by the deterministic code in this repository.
 
 **4. No AI in the results.** The engine and the explanations are rules and formulas. No language model takes part in the ranking or writes the explanation text that the farmer sees.
 
-**5. Images.** The README images are real screenshots of the working app. The Rotare logo was vectorised with AI help from the team's own design.
+**5. Images and media.** The README images are real screenshots of the working app. The Rotare logo was vectorised with AI help from the team's own design. In the presentation, the notebook sketch ("How we imagined it") was hand-drawn by the team, and one concept image ("How we designed it") was generated with AI and is labeled "AI-generated image" on the page. The background music is "Ambient Space Cinematic" by Viacheslav Starostin (Pixabay Content License).
 
 No NASA logo, flag or official mission identifier is altered or misused in this project.
 
