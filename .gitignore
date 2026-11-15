@@ -4,6 +4,17 @@
 !.env.exemplo
 .config/
 credentials*
+# chaves de Service Account do Google Cloud (Earth Engine): nunca no repositorio
+*service-account*.json
+*service_account*.json
+*-key.json
+*_key.json
+*.key.json
+projetoreminder-*.json
+gcp-*.json
+ee-key*.json
+# configuracao local da CLI da Vercel (pode conter tokens e variaveis puxadas)
+.vercel/
 
 # local environments and caches
 .venv/

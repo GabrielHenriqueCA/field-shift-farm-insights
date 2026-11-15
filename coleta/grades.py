@@ -25,9 +25,40 @@ WORLDCOVER = {10: "Árvores", 20: "Arbustos", 30: "Campo / pastagem", 40: "Lavou
               60: "Solo exposto", 70: "Neve e gelo", 80: "Água", 90: "Área úmida", 95: "Mangue", 100: "Musgo e líquen"}
 
 
+def _chave_service_account(bruto):
+    """EE_SERVICE_ACCOUNT_KEY em Base64 (o normal na Vercel) ou o JSON cru, para facilitar testes."""
+    bruto = bruto.strip()
+    if not bruto.startswith("{"):
+        bruto = base64.b64decode("".join(bruto.split())).decode("utf-8")
+    info = json.loads(bruto)
+    if not info.get("client_email") or not info.get("private_key"):
+        raise ValueError("EE_SERVICE_ACCOUNT_KEY não parece uma chave de Service Account (faltam client_email/private_key).")
+    return info, bruto
+
+
 def ee_init():
+    """Inicializa o Earth Engine e devolve o modulo `ee`.
+
+    Nuvem (Vercel): com EE_SERVICE_ACCOUNT_KEY definida, autentica pela Service Account.
+    Local: sem ela, usa as credenciais de `earthengine authenticate` (~/.config/earthengine) e o EE_PROJECT do .env.
+    """
     import ee
     proj = os.environ.get("EE_PROJECT")
+    chave = os.environ.get("EE_SERVICE_ACCOUNT_KEY")
+    if chave:
+        try:
+            info, dados = _chave_service_account(chave)
+        except Exception as e:
+            raise RuntimeError(f"EE_SERVICE_ACCOUNT_KEY ilegível ({type(e).__name__}); confira o Base64 do JSON.") from None
+        try:
+            cred = ee.ServiceAccountCredentials(email=info["client_email"], key_data=dados)
+            ee.Initialize(cred, project=proj or info.get("project_id"))
+        except Exception as e:
+            # Sem repassar a mensagem original: algumas trazem a chave privada inteira, e este erro
+            # aparece em /api/status e nos logs. "from None" tambem corta o traceback encadeado.
+            raise RuntimeError(f"Falha ao autenticar a Service Account {info['client_email']} "
+                               f"no projeto {proj or info.get('project_id')}: {type(e).__name__}.") from None
+        return ee
     env = Path(__file__).with_name(".env")
     if not proj and env.exists():
         for l in env.read_text(encoding="utf-8").splitlines():
