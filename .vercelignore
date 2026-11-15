@@ -2,6 +2,9 @@
 # Ignora caches, ambientes locais e dados analiticos pesados
 # Apenas os dados e o motor analitico na raiz; app/data e app/js/motor sao publicos.
 /data/
+# Midia do README (logos, prints, video do pitch, ~18 MB). O site nao usa: todas as rotas vao para /app/.
+# Fora daqui ela entrava no pacote da funcao Python e estourava o limite de 225 MB.
+/assets/
 /motor/
 .venv/
 **/__pycache__/
